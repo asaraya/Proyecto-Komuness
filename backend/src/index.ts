@@ -37,6 +37,7 @@ const defaultCorsOrigins = [
   'http://64.23.137.192',
   'http://159.54.148.238',
   'https://komuness.duckdns.org',
+  'https://proyecto-komuness-production.up.railway.app',
 ];
 
 const extraCorsOrigins =

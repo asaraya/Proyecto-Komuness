@@ -103,29 +103,35 @@ const BancoProfesionales = () => {
   };
 
   // Quitar del banco (admin) - USAR PROFESIONALES_API_URL
-  const quitarDelBanco = async (perfilId) => {
-    if (!window.confirm('¿Estás seguro de que quieres quitar a este profesional del banco?')) {
-      return;
+const quitarDelBanco = async (perfilId) => {
+  if (!window.confirm('¿Estás seguro de que quieres quitar a este profesional del banco?')) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`${PROFESIONALES_API_URL}/banco-profesionales/${perfilId}/quitar`, { 
+      method: 'PUT', 
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      throw new Error(responseData.message || 'Error al quitar del banco');
     }
 
-    try {
-      const response = await fetch(`${PROFESIONALES_API_URL}/banco-profesionales/${perfilId}/quitar`, { 
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) throw new Error('Error al quitar del banco');
-
-      toast.success('Profesional retirado del banco exitosamente');
-      
-      // Recargar lista
-      cargarProfesionales(searchTerm);
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Error al retirar del banco');
-    }
-  };
+    toast.success('Profesional retirado del banco exitosamente');
+    
+    // Recargar lista
+    cargarProfesionales(searchTerm);
+  } catch (error) {
+    console.error('Error detallado:', error);
+    toast.error(error.message || 'Error al retirar del banco');
+  }
+};
 
   // Búsqueda en tiempo real con debounce
   useEffect(() => {

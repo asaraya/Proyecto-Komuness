@@ -116,6 +116,10 @@ export const quitarDelBanco = async (req: Request, res: Response): Promise<void>
     const adminUser = await modelUsuario.findById(adminUserId);
     
     if (!adminUser || (adminUser.tipoUsuario !== 0 && adminUser.tipoUsuario !== 1)) {
+      console.log('Error de permisos:', { 
+        adminUser, 
+        tipoUsuario: adminUser?.tipoUsuario 
+      });
       res.status(403).json({
         success: false,
         message: 'No tienes permisos para realizar esta acción'
@@ -123,6 +127,7 @@ export const quitarDelBanco = async (req: Request, res: Response): Promise<void>
       return;
     }
 
+    // Buscar el perfil por ID
     const perfil = await modelPerfil.findById(id);
     
     if (!perfil) {
@@ -133,19 +138,40 @@ export const quitarDelBanco = async (req: Request, res: Response): Promise<void>
       return;
     }
 
+    console.log('Perfil encontrado:', {
+      id: perfil._id,
+      nombre: perfil.nombre,
+      enBancoProfesionales: perfil.enBancoProfesionales
+    });
+
+    // Si ya no está en el banco, retornar mensaje apropiado
+    if (!perfil.enBancoProfesionales) {
+      res.status(200).json({
+        success: true,
+        message: 'El usuario ya no está en el banco de profesionales',
+        data: perfil
+      });
+      return;
+    }
+
+    // Quitar del banco
     perfil.enBancoProfesionales = false;
     await perfil.save();
 
+    console.log('Perfil actualizado exitosamente');
+
     res.status(200).json({
       success: true,
-      message: 'Usuario retirado del banco de profesionales exitosamente'
+      message: 'Usuario retirado del banco de profesionales exitosamente',
+      data: perfil
     });
   } catch (error) {
-    console.error('Error en quitarDelBanco:', error);
+    console.error('Error detallado en quitarDelBanco:', error);
     res.status(500).json({
       success: false,
       message: 'Error al retirar del banco',
-      error: error instanceof Error ? error.message : 'Error desconocido'
+      error: error instanceof Error ? error.message : 'Error desconocido',
+      stack: error instanceof Error ? error.stack : undefined
     });
   }
 };

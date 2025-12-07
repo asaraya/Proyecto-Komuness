@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_ENV=production node dist/index.js",
-    "start:dev": "NODE_ENV=development ts-node-dev src/index.ts",
-    "dev": "NODE_ENV=development ts-node src/index.ts",
+    "start": "node dist/index.js",
+    "start:dev": "ts-node-dev src/index.ts",
+    "dev": "ts-node src/index.ts",
     "build": "tsc",
     "build:prod": "tsc && npm run clean-logs",
     "clean-logs": "node scripts/clean-console.js",

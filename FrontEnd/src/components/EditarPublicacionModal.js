@@ -31,7 +31,7 @@ export const EditarPublicacionModal = ({ publicacion, isOpen, onClose, onUpdate 
   // Inicializar datos cuando se abre el modal
   useEffect(() => {
     if (isOpen && publicacion) {
-      console.log('📋 Inicializando formulario con publicación:', publicacion);
+      
       
       setFormData({
         titulo: publicacion.titulo || "",
@@ -47,7 +47,7 @@ export const EditarPublicacionModal = ({ publicacion, isOpen, onClose, onUpdate 
 
       // Inicializar enlaces externos
       if (publicacion.enlacesExternos && publicacion.enlacesExternos.length > 0) {
-        console.log('🔗 Enlaces externos encontrados:', publicacion.enlacesExternos);
+        
         setEnlacesExternos(publicacion.enlacesExternos);
       } else {
         setEnlacesExternos([{ nombre: '', url: '' }]);
@@ -171,7 +171,7 @@ export const EditarPublicacionModal = ({ publicacion, isOpen, onClose, onUpdate 
       clearTimeout(timeoutId);
 
       const text = await response.text();
-      console.log('📡 Response text:', text);
+     
 
       let result;
       try {

@@ -75,13 +75,7 @@ async function setUserRolePremium(args: { id?: string; email?: string; plan?: Pl
   };
 
   const result = await users.updateOne(filter, update);
-  console.log("[PayPal] setUserRolePremium:", {
-    filter,
-    matched: result.matchedCount,
-    modified: result.modifiedCount,
-    nuevaFecha,
-    plan: plan || "mensual",
-  });
+
 }
 
 async function savePayment(doc: any) {
@@ -156,7 +150,7 @@ export const captureAndUpgrade: RequestHandler = async (
       authReq.userId ||
       authReq.user?.id;
 
-    console.log("[PayPal] Usuario autenticado asociado a este pago:", loggedUserId);
+  
 
     // Obtener montos configurados
     const montosConfigurados = await getMontosConfigurados();
@@ -169,10 +163,7 @@ export const captureAndUpgrade: RequestHandler = async (
         baseDelay: 1000, // 1 segundo
         timeout: 30000,  // 30 segundos
         onRetry: (error: PaymentError, attemptNumber: number) => {
-          // Loggear cada reintento
-          console.log(
-            `[PayPal] Reintento ${attemptNumber}: ${error.code} - ${error.message}`
-          );
+         
 
           // Agregar entrada al historial de reintentos
           retryHistory.push({
@@ -225,10 +216,7 @@ export const captureAndUpgrade: RequestHandler = async (
       return;
     }
 
-    // Operación exitosa - continuar con el flujo normal
-    console.log(
-      `[PayPal] ✓ Captura exitosa en ${result.attempts} intento(s)`
-    );
+   
 
     const data = result.data;
     const resource = data;
@@ -289,9 +277,7 @@ export const captureAndUpgrade: RequestHandler = async (
       } else {
          // AGREGADO PARA EL VENCIMIENTO
         await setUserRolePremium({ id: loggedUserId, plan: effectivePlan });
-        console.log(
-          `[PayPal] Usuario actualizado a Premium (por capture): ${loggedUserId} con plan ${effectivePlan}`
-        );
+        
       }
     }
 

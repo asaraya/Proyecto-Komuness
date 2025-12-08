@@ -3,9 +3,7 @@ import { toast } from 'react-hot-toast';
 import { API_URL } from '../utils/api';
 import { FiDollarSign, FiSmartphone, FiUser, FiX, FiCheck, FiCreditCard, FiMessageSquare } from 'react-icons/fi';
 
-console.log('ModalConfiguracionPagos - API_URL:', API_URL);
-console.log('ModalConfiguracionPagos - NODE_ENV:', process.env.NODE_ENV);
-console.log('ModalConfiguracionPagos - REACT_APP_BACKEND_URL:', process.env.REACT_APP_BACKEND_URL);
+
 
 const ModalConfiguracionPagos = ({ isOpen, onClose }) => {
   const [configuracion, setConfiguracion] = useState({
@@ -34,7 +32,7 @@ const ModalConfiguracionPagos = ({ isOpen, onClose }) => {
   const cargarConfiguracionPagos = async () => {
     try {
       setLoading(true);
-      console.log('Cargando configuración de pagos...');
+    
       
       const response = await fetch(`${API_URL}/configuracion/pagos`, {
         headers: {
@@ -42,14 +40,14 @@ const ModalConfiguracionPagos = ({ isOpen, onClose }) => {
         }
       });
 
-      console.log('Response status:', response.status);
+    
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: Error al cargar configuración de pagos`);
       }
 
       const data = await response.json();
-      console.log('Datos recibidos:', data);
+     
       
       if (data.success) {
         const nuevaConfig = {
@@ -60,7 +58,7 @@ const ModalConfiguracionPagos = ({ isOpen, onClose }) => {
           planAnualMonto: String(data.data.planAnualMonto || '8.0')
         };
 
-        console.log('Configuración establecida:', nuevaConfig);
+       
         setConfiguracion(nuevaConfig);
         setConfigOriginal(nuevaConfig);
       } else {
@@ -90,8 +88,7 @@ const ModalConfiguracionPagos = ({ isOpen, onClose }) => {
     setGuardando(true);
 
     try {
-        console.log('Enviando datos a:', `${API_URL}/configuracion/pagos`);
-        console.log(' Datos:', configuracion);
+        
         
         const response = await fetch(`${API_URL}/configuracion/pagos`, {
             method: 'PUT',
@@ -102,8 +99,7 @@ const ModalConfiguracionPagos = ({ isOpen, onClose }) => {
             body: JSON.stringify(configuracion)
         });
 
-        console.log(' Status:', response.status);
-        console.log(' Headers:', Object.fromEntries(response.headers.entries()));
+       
 
         // Verificar si la respuesta es JSON
         const contentType = response.headers.get('content-type');
@@ -120,7 +116,7 @@ const ModalConfiguracionPagos = ({ isOpen, onClose }) => {
         }
 
         const data = await response.json();
-        console.log(' Datos recibidos:', data);
+        
 
         if (!response.ok) {
             throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);

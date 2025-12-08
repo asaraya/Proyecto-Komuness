@@ -76,7 +76,7 @@ const UserProfileAvatar = ({
             e.target.src = defaultImage;
           }}
           onLoad={() => {
-            console.log('Imagen cargada correctamente:', currentImage);
+            
           }}
           loading="lazy"
         />

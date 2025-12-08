@@ -88,7 +88,7 @@ export const PerfilUsuario = () => {
   // Función para cargar actualizaciones pendientes
   const cargarActualizacionesPendientes = async () => {
     try {
-      console.log("Cargando actualizaciones pendientes...");
+    
 
       const response = await fetch(
         `${API_URL}/publicaciones/admin/pending-updates`,
@@ -100,7 +100,7 @@ export const PerfilUsuario = () => {
         }
       );
 
-      console.log("Response status:", response.status);
+ 
 
       if (response.status === 404) {
         setPendingUpdates([]);
@@ -117,7 +117,7 @@ export const PerfilUsuario = () => {
       }
 
       const data = await response.json();
-      console.log("Datos recibidos:", data);
+     
 
       setPendingUpdates(data.data || []);
     } catch (error) {
@@ -272,7 +272,7 @@ export const PerfilUsuario = () => {
   //  Funciones para manejar actualizaciones pendientes
   const aprobarActualizacion = async (publicacionId) => {
     try {
-      console.log("🔄 Aprobando actualización para:", publicacionId);
+      
 
       const response = await fetch(
         `${API_URL}/publicaciones/admin/${publicacionId}/approve-update`,
@@ -285,14 +285,14 @@ export const PerfilUsuario = () => {
         }
       );
 
-      console.log("📡 Response status:", response.status);
+      
 
       const data = await response.json();
-      console.log("📡 Response data:", data);
+     
 
       if (response.ok) {
         toast.success("Actualización aprobada exitosamente");
-        console.log("✅ Actualización aprobada, recargando lista...");
+       
         setPendingUpdates((prev) =>
           prev.filter((item) => item._id !== publicacionId)
         );

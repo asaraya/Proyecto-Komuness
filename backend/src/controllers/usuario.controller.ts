@@ -56,7 +56,7 @@ export const getUsuarios = async (req: Request, res: Response): Promise<void> =>
         });
     } catch (error) {
         const err = error as Error;
-        console.log(`Error en ${getUsuarios.name}: ${err.message}`);
+        
         res.status(500).json({ success: false, message: err.message });
     }
 };

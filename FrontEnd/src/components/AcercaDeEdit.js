@@ -205,11 +205,11 @@ const AcercaDeEdit = ({ data, onUpdate, onCancel }) => {
       body: uploadFormData
     });
 
-    console.log(' Respuesta recibida:', response.status, response.statusText);
+  
 
     // Obtener el texto de la respuesta primero para debugging
     const responseText = await response.text();
-    console.log(' Respuesta completa:', responseText);
+   
 
     let result;
     try {
@@ -220,7 +220,7 @@ const AcercaDeEdit = ({ data, onUpdate, onCancel }) => {
     }
 
     if (response.ok) {
-      console.log('Imagen subida exitosamente:', result);
+    
       toast.success('Imagen subida exitosamente');
       
       // Actualizar LOCALMENTE sin recargar todos los datos
@@ -316,7 +316,7 @@ const AcercaDeEdit = ({ data, onUpdate, onCancel }) => {
 
   try {
     setLoading(true);
-    console.log('Iniciando subida de imagen de miembro...', { memberIndex, file: file.name });
+    
 
     const response = await fetch(`${API_URL}/acerca-de/upload-miembro`, {
       method: 'POST',
@@ -326,10 +326,10 @@ const AcercaDeEdit = ({ data, onUpdate, onCancel }) => {
       body: uploadFormData
     });
 
-    console.log(' Respuesta miembro recibida:', response.status);
+  
 
     const responseText = await response.text();
-    console.log('Respuesta miembro completa:', responseText);
+   
 
     let result;
     try {
@@ -340,7 +340,7 @@ const AcercaDeEdit = ({ data, onUpdate, onCancel }) => {
     }
 
     if (response.ok) {
-      console.log('Imagen de miembro subida exitosamente:', result);
+     
       toast.success('Foto de perfil subida exitosamente');
       
       setFormData(prev => ({

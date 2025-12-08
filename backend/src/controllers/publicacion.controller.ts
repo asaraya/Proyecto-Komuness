@@ -122,14 +122,7 @@ export const createPublicacion = async (req: Request, res: Response): Promise<vo
     const telefono = parseTelefono(body.telefono);
     const enlacesExternos = parseEnlacesExternos(body.enlacesExternos);
 
-    if (LOG_ON) {
-      console.log('[Publicaciones][createPublicacion] req.body.precios:', {
-        regular: { valor: body.precio, normalizado: precio },
-        estudiante: { valor: body.precioEstudiante, normalizado: precioEstudiante },
-        ciudadanoOro: { valor: body.precioCiudadanoOro, normalizado: precioCiudadanoOro },
-      });
-      console.log('[Publicaciones][createPublicacion] telefono:', body.telefono, '→', telefono);
-    }
+  
 
     if (mustRequirePrecio(tag) && precio === undefined) {
       res.status(400).json({ message: 'El campo precio regular es obligatorio y debe ser numérico para eventos/emprendimientos.' });
@@ -150,16 +143,7 @@ export const createPublicacion = async (req: Request, res: Response): Promise<vo
 
     const nuevaPublicacion = new modelPublicacion(publicacion);
 
-    if (LOG_ON) {
-      console.log('[Publicaciones][createPublicacion] doc a guardar:', {
-        autor: nuevaPublicacion.autor,
-        precio: nuevaPublicacion.precio,
-        precioEstudiante: nuevaPublicacion.precioEstudiante,
-        precioCiudadanoOro: nuevaPublicacion.precioCiudadanoOro,
-        telefono: nuevaPublicacion.telefono,
-        enlacesExternos: nuevaPublicacion.enlacesExternos,
-      });
-    }
+   
 
     const savePost = await nuevaPublicacion.save();
 
@@ -176,7 +160,7 @@ export const createPublicacion = async (req: Request, res: Response): Promise<vo
         if (LOG_ON) console.warn('[Publicaciones][createPublicacion] No hay admins con email para notificar');
       } else {
         await Promise.allSettled(emails.map((e) => sendEmail(e, asunto, texto)));
-        if (LOG_ON) console.log(`[Publicaciones][createPublicacion] Notificación enviada a ${emails.length} admins`);
+        
       }
     } catch (e) {
       console.warn('[Publicaciones][createPublicacion] No se pudo enviar la notificación:', e);
@@ -234,14 +218,7 @@ export const createPublicacionA = async (req: Request, res: Response): Promise<v
     const telefono = parseTelefono((publicacion as any).telefono);
     const enlacesExternos = parseEnlacesExternos((publicacion as any).enlacesExternos);
 
-    if (LOG_ON) {
-      console.log('[Publicaciones][createPublicacionA] body.precios:', {
-        regular: { valor: (publicacion as any).precio, normalizado: precio },
-        estudiante: { valor: (publicacion as any).precioEstudiante, normalizado: precioEstudiante },
-        ciudadanoOro: { valor: (publicacion as any).precioCiudadanoOro, normalizado: precioCiudadanoOro },
-      });
-      console.log('[Publicaciones][createPublicacionA] telefono:', (publicacion as any).telefono, '→', telefono);
-    }
+   
 
     if (mustRequirePrecio(tag) && precio === undefined) {
       res.status(400).json({ ok: false, message: 'El campo precio regular es obligatorio y debe ser numérico para eventos/emprendimientos.' });
@@ -273,13 +250,7 @@ export const createPublicacionA = async (req: Request, res: Response): Promise<v
       enlacesExternos,
     });
 
-    if (LOG_ON) {
-      console.log('[Publicaciones][createPublicacionA] doc a guardar (autor, precio, horaEvento):', {
-        autor: nuevaPublicacion.autor,
-        precio: nuevaPublicacion.precio,
-        horaEvento: (nuevaPublicacion as any).horaEvento,
-      });
-    }
+
 
     const savePost = await nuevaPublicacion.save();
 
@@ -296,7 +267,7 @@ export const createPublicacionA = async (req: Request, res: Response): Promise<v
         if (LOG_ON) console.warn('[Publicaciones][createPublicacionA] No hay admins con email para notificar');
       } else {
         await Promise.allSettled(emails.map((e) => sendEmail(e, asunto, texto)));
-        if (LOG_ON) console.log(`[Publicaciones][createPublicacionA] Notificación enviada a ${emails.length} admins`);
+       
       }
     } catch (e) {
       console.warn('[Publicaciones][createPublicacionA] No se pudo enviar la notificación:', e);
@@ -410,18 +381,13 @@ export const updatePublicacion = async (req: Request, res: Response): Promise<vo
 
     if (updatedData.hasOwnProperty('precio')) {
       const parsed = parsePrecio(updatedData.precio);
-      if (LOG_ON) {
-        console.log('[Publicaciones][updatePublicacion] body.precio:', updatedData.precio, '→', parsed);
-      }
       updatedData.precio = parsed;
     }
 
     // Si viene horaEvento, normalizar a HH:mm (si no es válida, no pisa)
     if (updatedData.hasOwnProperty('horaEvento')) {
       const parsedHora = parseHoraEvento(updatedData.horaEvento);
-      if (LOG_ON) {
-        console.log('[Publicaciones][updatePublicacion] body.horaEvento:', updatedData.horaEvento, '→', parsedHora);
-      }
+      
       if (parsedHora !== undefined) updatedData.horaEvento = parsedHora;
       else delete updatedData.horaEvento;
     }

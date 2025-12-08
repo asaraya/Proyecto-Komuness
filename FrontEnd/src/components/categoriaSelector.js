@@ -10,7 +10,7 @@ export const CategoriaSelector = ({ selectedCategoria, onCategoriaChange, requir
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
-        console.log('Cargando categorías desde:', `${API_URL}/categorias`);
+        
         const response = await fetch(`${API_URL}/categorias`);
         
         if (!response.ok) {
@@ -18,7 +18,7 @@ export const CategoriaSelector = ({ selectedCategoria, onCategoriaChange, requir
         }
         
         const data = await response.json();
-        console.log('Categorías recibidas:', data);
+       
         setCategorias(data.data || []);
         setError(null);
       } catch (error) {

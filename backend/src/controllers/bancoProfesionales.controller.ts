@@ -116,10 +116,6 @@ export const quitarDelBanco = async (req: Request, res: Response): Promise<void>
     const adminUser = await modelUsuario.findById(adminUserId);
     
     if (!adminUser || (adminUser.tipoUsuario !== 0 && adminUser.tipoUsuario !== 1)) {
-      console.log('Error de permisos:', { 
-        adminUser, 
-        tipoUsuario: adminUser?.tipoUsuario 
-      });
       res.status(403).json({
         success: false,
         message: 'No tienes permisos para realizar esta acción'
@@ -138,11 +134,6 @@ export const quitarDelBanco = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    console.log('Perfil encontrado:', {
-      id: perfil._id,
-      nombre: perfil.nombre,
-      enBancoProfesionales: perfil.enBancoProfesionales
-    });
 
     // Si ya no está en el banco, retornar mensaje apropiado
     if (!perfil.enBancoProfesionales) {

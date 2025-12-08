@@ -79,7 +79,6 @@ class BibliotecaController {
     static async uploadFiles(req: Request, res: Response) {
 
         const { folderId, userId, userType } = req.body;
-        console.log('Upload request:', { folderId, userId, userType, userTypeType: typeof userType });
         
         if (!userId) {
             return res.status(400).json({
@@ -140,7 +139,6 @@ class BibliotecaController {
                     const estadoArchivo = isBasicOrPremium ? 'pendiente' : 'aprobado';
                     const esPublicoArchivo = !isBasicOrPremium; // Solo públicos si son aprobados automáticamente
 
-                    console.log(`Archivo "${file.originalname}": userType=${userTypeNum}, isBasicOrPremium=${isBasicOrPremium}, estado=${estadoArchivo}, esPublico=${esPublicoArchivo}`);
 
                     // 1) Instancia (Mongoose ya asigna _id antes de guardar)
                     const archivo = new Archivo({
@@ -262,8 +260,7 @@ class BibliotecaController {
         };
 
         try {
-            console.log('Query archivos:', queryArchivos);
-            console.log('Query folders:', queryFolders);
+           
 
             const archivos = await Archivo.find(queryArchivos)
                 .populate('autor', 'nombre')

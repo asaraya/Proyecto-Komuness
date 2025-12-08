@@ -47,10 +47,10 @@ async function inicializarConfiguraciones() {
             const existe = await Configuracion.findOne({ clave: config.clave });
             
             if (existe) {
-                console.log(`⚠️  La configuración "${config.clave}" ya existe con valor: ${existe.valor}`);
+                console.log(`⚠️`);
             } else {
                 await Configuracion.create(config);
-                console.log(`✅ Configuración "${config.clave}" creada con valor: ${config.valor}`);
+               
             }
         }
 

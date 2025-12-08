@@ -29,8 +29,7 @@ export const PublicacionModal = ({ name, date, tag, id, isOpen, onClose }) => {
         return;
       }
 
-      console.log(`Intentando eliminar publicación ${id}`);
-      console.log(`URL: ${API_URL}/publicaciones/${id}`);
+    
 
       const res = await fetch(`${API_URL}/publicaciones/${id}`, {
         method: "DELETE",
@@ -40,11 +39,11 @@ export const PublicacionModal = ({ name, date, tag, id, isOpen, onClose }) => {
         },
       });
 
-      console.log(`Status de respuesta: ${res.status}`);
+    
 
       if (res.ok) {
         const data = await res.json();
-        console.log("Publicación eliminada exitosamente:", data);
+        
         
         setIsDeleting(false);
         

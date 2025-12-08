@@ -28,12 +28,7 @@ export const requestUpdatePublicacion = async (req: Request, res: Response): Pro
       return;
     }
 
-    // (Opcional) Logs de depuración
-    if (LOG_ON) {
-      console.log('👤 userId token:', userId);
-      console.log('📝 autor BD:', publicacion.autor?.toString?.());
-    }
-
+   
     // 🔴 Verificar si el usuario es el autor (string vs string)
     if (publicacion.autor?.toString?.() !== userId) {
       res.status(403).json({ message: 'Solo el autor puede editar esta publicación' });
@@ -59,9 +54,6 @@ export const requestUpdatePublicacion = async (req: Request, res: Response): Pro
       return;
     }
 
-    console.log('📥 Procesando solicitud de edición...');
-    console.log('Body fields:', Object.keys(req.body));
-    console.log('Files:', req.files);
 
     // Procesar FormData 
     const updateData: any = {};
@@ -91,7 +83,7 @@ export const requestUpdatePublicacion = async (req: Request, res: Response): Pro
     // Procesar enlaces externos
     if (req.body.enlacesExternos) {
       try {
-        console.log('🔗 Enlaces externos recibidos:', req.body.enlacesExternos);
+        console.log('🔗 Enlaces externos recibidos');
         
         let enlacesParseados;
         // Si ya es un array, usarlo directamente
@@ -184,7 +176,7 @@ export const requestUpdatePublicacion = async (req: Request, res: Response): Pro
       return;
     }
 
-    console.log('🔄 Campos que cambiaron:', camposCambiados);
+  
 
     // Preparar datos de actualización
     const pendingUpdate: IPublicacionUpdate = {
@@ -327,7 +319,6 @@ export const approveUpdate = async (req: Request, res: Response): Promise<void> 
     }
 
     if (updateFields.contenido !== undefined && updateFields.contenido !== publicacion.contenido) {
-      console.log('🔄 Actualizando contenido:', publicacion.contenido?.substring(0, 30), '→', updateFields.contenido?.substring(0, 30));
       publicacion.contenido = updateFields.contenido;
       camposActualizados.push('contenido');
     }
@@ -358,22 +349,17 @@ export const approveUpdate = async (req: Request, res: Response): Promise<void> 
     }
 
     if (updateFields.telefono !== undefined && updateFields.telefono !== publicacion.telefono) {
-      console.log('🔄 Actualizando teléfono:', publicacion.telefono, '→', updateFields.telefono);
       publicacion.telefono = updateFields.telefono;
       camposActualizados.push('teléfono');
     }
 
     if (updateFields.categoria !== undefined) {
-      console.log('🔄 Actualizando categoría:', publicacion.categoria, '→', updateFields.categoria);
       publicacion.categoria = updateFields.categoria as any;
       camposActualizados.push('categoría');
     }
 
     //  Manejo de enlacesExternos
     if (updateFields.enlacesExternos !== undefined) {
-      console.log('🔄 Actualizando enlaces externos:');
-      console.log('Antes:', JSON.stringify(publicacion.enlacesExternos, null, 2));
-      console.log('Después:', JSON.stringify(updateFields.enlacesExternos, null, 2));
       
       if (Array.isArray(updateFields.enlacesExternos)) {
         publicacion.enlacesExternos = updateFields.enlacesExternos.filter((enlace: IEnlaceExterno) => 

@@ -39,12 +39,12 @@ router.delete('/:clave', authMiddleware, verificarRoles([0]), deleteConfiguracio
 
 
 router.get('/pagos', (req, res, next) => {
-    console.log('GET /pagos route hit');
+   
     next();
 }, authMiddleware, verificarRoles([0, 1]), getConfiguracionPagos);
 
 router.put('/pagos', (req, res, next) => {
-    console.log('PUT /pagos route hit');
+    
     next();
 }, authMiddleware, verificarRoles([0, 1]), actualizarConfiguracionPagos);
 

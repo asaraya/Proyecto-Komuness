@@ -58,8 +58,7 @@ const EditarPerfil = () => {
   }, []);
 
   useEffect(() => {
-    console.log('Foto de perfil actual:', perfil.fotoPerfil);
-    console.log('URL completa:', perfil.fotoPerfil ? `${BASE_URL}${perfil.fotoPerfil}` : 'Sin foto');
+    
   }, [perfil.fotoPerfil]);
 
   const cargarPerfil = async () => {
@@ -253,13 +252,12 @@ const EditarPerfil = () => {
 
   const handleFotoSubida = async (file) => {
     try {
-      console.log('=== INICIANDO SUBIDA DE FOTO ===');
-      console.log('Archivo seleccionado:', file.name, file.type, file.size);
+      
       
       const formData = new FormData();
       formData.append('foto', file);
 
-      console.log('Enviando petición a:', `${API_URL}/perfil/foto`);
+     
       const response = await fetch(`${API_URL}/perfil/foto`, {
         method: 'PUT',
         headers: {
@@ -268,7 +266,7 @@ const EditarPerfil = () => {
         body: formData
       });
 
-      console.log('Status de respuesta:', response.status);
+      
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -277,24 +275,21 @@ const EditarPerfil = () => {
       }
 
       const data = await response.json();
-      console.log('=== RESPUESTA DEL SERVIDOR ===');
-      console.log('Datos recibidos:', data);
-      console.log('Nueva ruta de foto:', data.fotoPerfil);
-      console.log('URL completa que se usará:', `${BASE_URL}${data.fotoPerfil}`);
+     
       
       // Actualizar el estado con la nueva foto
       setPerfil(prev => {
         const nuevoEstado = { ...prev, fotoPerfil: data.fotoPerfil };
-        console.log('Estado actualizado:', nuevoEstado.fotoPerfil);
+       
         return nuevoEstado;
       });
       
       // Recargar el perfil completo para asegurar sincronización
-      console.log('Recargando perfil completo...');
+    
       await cargarPerfil();
       
       toast.success('Foto de perfil actualizada');
-      console.log('=== SUBIDA COMPLETADA ===');
+      
     } catch (error) {
       console.error('=== ERROR EN SUBIDA ===');
       console.error('Error completo:', error);
@@ -305,18 +300,17 @@ const EditarPerfil = () => {
 
   const handleFotoEliminada = async () => {
     try {
-      console.log('=== ELIMINANDO FOTO ===');
-      console.log('Foto actual:', perfil.fotoPerfil);
+      
       
       // Actualizar estado localmente
       setPerfil(prev => {
         const nuevoEstado = { ...prev, fotoPerfil: '' };
-        console.log('Estado después de eliminar:', nuevoEstado.fotoPerfil);
+       
         return nuevoEstado;
       });
       
       toast.success('Foto de perfil eliminada');
-      console.log('=== ELIMINACIÓN COMPLETADA ===');
+     
     } catch (error) {
       console.error('=== ERROR AL ELIMINAR ===');
       console.error('Error:', error);

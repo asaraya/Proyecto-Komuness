@@ -13,7 +13,6 @@ const User = mongoose.model('usuarios', schema);
     await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 });
     const correo = process.argv[2] || 'administrador@gmail.com';
     const u = await User.findOne({ correo });
-    console.log(u ? u : 'NO_ENCONTRADO');
     await mongoose.disconnect();
     process.exit(0);
   } catch (e) {

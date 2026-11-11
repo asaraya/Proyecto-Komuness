@@ -7,7 +7,17 @@ export const DocumentModal = ({ isOpen, onClose, onDownload, onRedirect, onDelet
     if (!isOpen) return null;
     return (
     
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-50">
+        
+        <div className='flex flex-col bg-yellow-400 text-black font-medium p-4 rounded-lg shadow-[0_4px_20px_rgba(0,0,0,1)] mb-4 max-w-md'>
+            <p>
+                <b>Advertencia: </b>
+                La biblioteca puede contener archivos maliciosos.
+                Descargue solo en los que confía y reporte archivos sospechosos a los administradores.
+
+            </p>
+        </div>
+        
         <div className="bg-[#2A2A35] text-white p-6 rounded-lg shadow-[0_4px_20px_rgba(0,0,0,1)] w-[90%] max-w-md text-center">
           <div className="flex flex-col items-center gap-4">
             {/* Icono grande */}

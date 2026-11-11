@@ -64,24 +64,24 @@ export const NuevaContra = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-start justify-center bg-gray-800/80 px-6 py-20">
-      <div className="w-full max-w-xl bg-[#12143d] text-[#f0f0f0] rounded-2xl shadow-2xl p-10">
-        <h2 className="text-4xl font-bold mb-6 text-center text-[#ffbf30]">
+    <div className="min-h-screen flex items-start justify-center bg-gray-800/80 px-4 sm:px-6 py-8 sm:py-12 pt-20 sm:pt-24">
+      <div className="w-full max-w-sm sm:max-w-md md:max-w-xl bg-[#12143d] text-[#f0f0f0] rounded-2xl shadow-2xl p-6 sm:p-8 md:p-10">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 text-center text-[#ffbf30]">
           Nueva Contraseña
         </h2>
-        <p className="text-sm text-center mb-8 text-[#f0f0f0]">
+        <p className="text-xs sm:text-sm text-center mb-6 sm:mb-8 text-[#f0f0f0]">
           Ingresa tu nueva contraseña para actualizarla.
         </p>
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="new-password" className="block text-base mb-2">
+            <label htmlFor="new-password" className="block text-sm sm:text-base mb-2">
               Introduzca Nueva Contraseña
             </label>
             <input
               id="new-password"
               type="password"
               placeholder="Nueva contraseña"
-              className="w-full px-5 py-3 rounded-xl bg-[#404270] border-none text-[#f0f0f0] focus:ring-2 focus:ring-[#5445ff] outline-none"
+              className="w-full px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-[#404270] border-none text-[#f0f0f0] focus:ring-2 focus:ring-[#5445ff] outline-none text-sm sm:text-base"
               value={nuevaContrasena}
               onChange={(e) => setNuevaContrasena(e.target.value)}
               required
@@ -89,14 +89,14 @@ export const NuevaContra = () => {
           </div>
 
           <div>
-            <label htmlFor="confirm-password" className="block text-base mb-2">
+            <label htmlFor="confirm-password" className="block text-sm sm:text-base mb-2">
               Repita la Nueva Contraseña
             </label>
             <input
               id="confirm-password"
               type="password"
               placeholder="Repetir contraseña"
-              className="w-full px-5 py-3 rounded-xl bg-[#404270] border-none text-[#f0f0f0] focus:ring-2 focus:ring-[#5445ff] outline-none"
+              className="w-full px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-[#404270] border-none text-[#f0f0f0] focus:ring-2 focus:ring-[#5445ff] outline-none text-sm sm:text-base"
               value={confirmarContrasena}
               onChange={(e) => setConfirmarContrasena(e.target.value)}
               required
@@ -106,12 +106,12 @@ export const NuevaContra = () => {
           <button
             type="submit"
             disabled={cargando}
-            className="w-full bg-[#5445ff] hover:bg-[#4032cc] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold rounded-xl py-3 text-lg"
+            className="w-full bg-[#5445ff] hover:bg-[#4032cc] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold rounded-xl py-2.5 sm:py-3 text-base sm:text-lg"
           >
             {cargando ? 'Actualizando...' : 'Actualizar Contraseña'}
           </button>
         </form>
-        <p className="mt-6 text-sm text-center">
+        <p className="mt-4 sm:mt-6 text-xs sm:text-sm text-center">
           ¿Recordaste tu contraseña?{' '}
           <a href="/iniciarSesion" className="text-[#ffbf30] font-medium">
             Inicia Sesión

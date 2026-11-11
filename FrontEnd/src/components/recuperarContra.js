@@ -43,21 +43,21 @@ export const RecuperarContra = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-start justify-center bg-gray-800/80 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-xl bg-[#12143d] text-[#f0f0f0] rounded-2xl shadow-2xl p-8 sm:p-10">
-        <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-center text-[#ffbf30]">
+    <div className="min-h-screen flex items-start justify-center bg-gray-800/80 px-4 sm:px-6 py-8 sm:py-12 pt-20 sm:pt-24">
+      <div className="w-full max-w-sm sm:max-w-md md:max-w-xl bg-[#12143d] text-[#f0f0f0] rounded-2xl shadow-2xl p-6 sm:p-8 md:p-10">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 text-center text-[#ffbf30]">
           Recuperar Contraseña
         </h2>
-        <p className="text-sm text-center mb-8 text-[#f0f0f0]">
+        <p className="text-xs sm:text-sm text-center mb-6 sm:mb-8 text-[#f0f0f0]">
           Ingresa tu correo electrónico y te enviaremos una nueva contraseña si tu cuenta existe.
         </p>
 
-        {mensaje && <div className="text-green-400 text-center font-medium mb-4">{mensaje}</div>}
-        {error && <div className="text-red-400 text-center font-medium mb-4">{error}</div>}
+        {mensaje && <div className="text-green-400 text-center font-medium mb-4 text-sm sm:text-base">{mensaje}</div>}
+        {error && <div className="text-red-400 text-center font-medium mb-4 text-sm sm:text-base">{error}</div>}
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="email" className="block text-base mb-2 text-center">
+            <label htmlFor="email" className="block text-sm sm:text-base mb-2 text-center">
               Correo Electrónico
             </label>
             <input
@@ -67,19 +67,19 @@ export const RecuperarContra = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-5 py-3 rounded-xl bg-[#404270] border-none text-[#f0f0f0] focus:ring-2 focus:ring-[#5445ff] outline-none"
+              className="w-full px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-[#404270] border-none text-[#f0f0f0] focus:ring-2 focus:ring-[#5445ff] outline-none text-sm sm:text-base"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-[#5445ff] hover:bg-[#4032cc] text-white font-semibold rounded-xl py-3 text-lg"
+            className="w-full bg-[#5445ff] hover:bg-[#4032cc] text-white font-semibold rounded-xl py-2.5 sm:py-3 text-base sm:text-lg"
           >
             Enviar nueva contraseña
           </button>
         </form>
 
-        <p className="mt-6 text-sm text-center">
+        <p className="mt-4 sm:mt-6 text-xs sm:text-sm text-center">
           ¿Recordaste tu contraseña?{' '}
           <a href="/iniciarSesion" className="text-[#ffbf30] font-medium">
             Inicia Sesión

@@ -48,6 +48,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const paypal_controller_1 = require("../controllers/paypal.controller");
 const paypalUtils = __importStar(require("../utils/paypal"));
 const mongoose_1 = __importDefault(require("mongoose"));
+const mongodb_1 = require("../utils/mongodb");
 // Mock de las utilidades de PayPal
 jest.mock('../utils/paypal');
 describe('RF016 - PayPal Controller con Reintentos', () => {
@@ -55,6 +56,15 @@ describe('RF016 - PayPal Controller con Reintentos', () => {
     let mockResponse;
     let jsonMock;
     let statusMock;
+    // Configurar MongoDB antes de todos los tests
+    beforeAll(() => __awaiter(void 0, void 0, void 0, function* () {
+        const mongoUri = process.env.BD_URL || 'mongodb://localhost:27017/komuness-test';
+        yield (0, mongodb_1.connectBD)(mongoUri);
+    }), 30000); // Timeout de 30 segundos
+    // Cerrar conexión después de todos los tests
+    afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
+        yield mongoose_1.default.connection.close();
+    }), 10000);
     beforeEach(() => {
         jsonMock = jest.fn();
         statusMock = jest.fn().mockReturnValue({ json: jsonMock });
@@ -143,7 +153,7 @@ describe('RF016 - PayPal Controller con Reintentos', () => {
             mockRequest.body = { orderId: 'ORDER_INSUFFICIENT_FUNDS' };
             paypalUtils.captureOrder.mockRejectedValue({
                 message: 'Insufficient funds in account',
-                statusCode: 400,
+                // No incluir statusCode para que use el mapeado por PaymentErrorHandler
             });
             yield (0, paypal_controller_1.captureAndUpgrade)(mockRequest, mockResponse, jest.fn());
             // Debe llamar captureOrder solo 1 vez (no reintenta)

@@ -127,3 +127,60 @@ footer a[href^="mailto:"] {
     gap: 2rem;
   }
 }
+
+@media (max-width: 480px) {
+  .footer-grid {
+    gap: 2rem;
+  }
+
+  footer ul li {
+    margin-bottom: 0.5rem;
+  }
+
+  .footer-link {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .footer-grid {
+    gap: 1.5rem;
+  }
+
+  .footer-section h3,
+  .footer-section h4 {
+    font-size: 1rem;
+  }
+
+  .footer-link {
+    font-size: 0.85rem;
+  }
+
+  .contact-button {
+    font-size: 0.85rem;
+  }
+}
+
+@media (hover: none) {
+  .footer-link:hover,
+  .contact-button:hover,
+  footer a[aria-label]:hover {
+    transform: none;
+  }
+  .footer-bottom .legal-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .footer-bottom .legal-link {
+    font-size: 0.95rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    letter-spacing: 0.1px;
+  }
+
+  .footer-bottom .legal-link:hover {
+    transform: translateY(-1px);
+  }
+}

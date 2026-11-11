@@ -295,59 +295,54 @@ describe('RF016 - PayPal Controller con Reintentos', () => {
     });
   });
 
+  // Los console.log del controller se eliminaron a propósito (commit 9d44084)
+  // para no exponer información de pagos en producción.
   describe('captureAndUpgrade - Logging', () => {
-    
-    test('Debe loggear inicio de captura', async () => {
+
+    test('No debe exponer el orderId en los logs', async () => {
       const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
       mockRequest.body = { orderId: 'ORDER_LOG_TEST' };
-      
+
       (paypalUtils.captureOrder as jest.Mock).mockResolvedValue({ id: 'CAP' });
       (paypalUtils.extractPaymentInfo as jest.Mock).mockReturnValue({
         captureId: 'CAP',
         status: 'COMPLETED',
       });
       (paypalUtils.extractUserId as jest.Mock).mockReturnValue(null);
-      
+
       await captureAndUpgrade(
         mockRequest as Request,
         mockResponse as Response,
         jest.fn()
       );
-      
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[PayPal] Iniciando captura')
-      );
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('ORDER_LOG_TEST')
-      );
-      
+
+      const logs = consoleLogSpy.mock.calls.flat().map(String).join('\n');
+      expect(logs).not.toContain('ORDER_LOG_TEST');
+
       consoleLogSpy.mockRestore();
     });
-    
-    test('Debe loggear captura exitosa con número de intentos', async () => {
+
+    test('No debe exponer el captureId en los logs tras una captura exitosa', async () => {
       const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
       mockRequest.body = { orderId: 'ORDER_SUCCESS_LOG' };
-      
-      (paypalUtils.captureOrder as jest.Mock).mockResolvedValue({ id: 'CAP' });
+
+      (paypalUtils.captureOrder as jest.Mock).mockResolvedValue({ id: 'CAP_SECRETO' });
       (paypalUtils.extractPaymentInfo as jest.Mock).mockReturnValue({
-        captureId: 'CAP',
+        captureId: 'CAP_SECRETO',
         status: 'COMPLETED',
       });
       (paypalUtils.extractUserId as jest.Mock).mockReturnValue(null);
-      
+
       await captureAndUpgrade(
         mockRequest as Request,
         mockResponse as Response,
         jest.fn()
       );
-      
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('✓ Captura exitosa')
-      );
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('intento(s)')
-      );
-      
+
+      const logs = consoleLogSpy.mock.calls.flat().map(String).join('\n');
+      expect(logs).not.toContain('ORDER_SUCCESS_LOG');
+      expect(logs).not.toContain('CAP_SECRETO');
+
       consoleLogSpy.mockRestore();
     });
   });

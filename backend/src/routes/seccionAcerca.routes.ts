@@ -11,6 +11,7 @@ import {
 } from "../controllers/seccionAcerca.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { verificarRoles } from "../middlewares/roles.middleware";
+import { secureUploads } from "../utils/uploadSecurity";
 
 const router = Router();
 
@@ -28,6 +29,7 @@ router.post("/upload",
   authMiddleware, 
   verificarRoles([0, 1]), 
   uploadAcercaDe.single('imagen'), 
+  secureUploads('images'),
   uploadImagen
 );
 
@@ -36,6 +38,7 @@ router.post("/upload-miembro",
   authMiddleware, 
   verificarRoles([0, 1]), 
   uploadAcercaDe.single('imagen'), 
+  secureUploads('images'),
   uploadImagenMiembro
 );
 

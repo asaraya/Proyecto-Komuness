@@ -1,25 +1,24 @@
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+import { describe, expect, test, beforeAll } from '@jest/globals';
 import { modelCategoria } from '../models/categoria.model';
+import { connectBD } from '../utils/mongodb';
 
-dotenv.config();
+describe('Modelo Categoria', () => {
+    beforeAll(async () => {
+        await connectBD(process.env.BD_URL || 'mongodb://localhost:27017/testdb');
+    });
 
-async function main() {
-    await mongoose.connect(process.env.BD_URL!);
-    console.log('Conectado a MongoDB para pruebas');
+    test('Crea y lista una categoría', async () => {
+        const nombre = `Danza ${Date.now()}`;
+        const categoria = await modelCategoria.create({ nombre });
 
-    // Crear una categoría de prueba
-    const categoria = new modelCategoria({ nombre: 'Danza' });
-    await categoria.save();
-    console.log('Categoría creada:', categoria);
+        const categorias = await modelCategoria.find({ nombre });
+        expect(categorias).toHaveLength(1);
+        expect(String(categorias[0]._id)).toBe(String(categoria._id));
 
-    // Listar todas las categorías
-    const categorias = await modelCategoria.find();
-    console.log('Todas las categorías en la base de datos:', categorias);
+        await modelCategoria.findByIdAndDelete(categoria._id);
+    });
 
-    // Cerrar conexión
-    await mongoose.disconnect();
-    console.log(' Desconectado de MongoDB');
-}
-
-main().catch(console.error);
+    test('No permite categorías sin nombre', async () => {
+        await expect(modelCategoria.create({})).rejects.toThrow();
+    });
+});

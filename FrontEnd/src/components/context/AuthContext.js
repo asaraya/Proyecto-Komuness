@@ -22,13 +22,18 @@ export function AuthProvider({ children }) {
           //si la respuesta es diferente de 200
           if (!response.ok) {
             logout();
+            setCargando(false);
+            return;
           }
+          const data = await response.json();
+          const userData = data.user || JSON.parse(localUser);
+          localStorage.setItem('user', JSON.stringify(userData));
+          setUser(userData);
         } catch (error) {
           logout();
+          setCargando(false);
+          return;
         }
-        setUser(JSON.parse(localUser));
-      }
-      if (localUser) {
       }
       setCargando(false);
     }
@@ -52,13 +57,20 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const updateUser = (userData) => {
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, cargando }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, cargando }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  const token = localStorage.getItem('token');
+  return { ...context, token };
 }

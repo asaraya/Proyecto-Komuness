@@ -1,9 +1,11 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { IUsuario, IUsuario as Usuario } from '../interfaces/usuario.interface';
 import { modelUsuario } from '../models/usuario.model';
 import { generarToken, verificarToken } from '../utils/jwt';
 import { hashPassword, comparePassword } from '../utils/bcryptjs';
 import { createTransport } from 'nodemailer';
+import { normalizeEncuestaInicio } from '../utils/encuestaInicio';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -61,6 +63,23 @@ export const getUsuarios = async (req: Request, res: Response): Promise<void> =>
     }
 };
 
+// Controlador para obtener todos los usuarios
+export const getPublicUsuarios = async (req: Request, res: Response): Promise<void> => {
+
+    try {
+        const usuarios = await modelUsuario.find().select('nombre apellido email');
+
+        res.status(200).json({
+            success: true,
+            data: usuarios
+        });
+    } catch (error) {
+        const err = error as Error;
+        
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 // Controlador para obtener un usuario por su id
 export const getUsuarioById = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -92,17 +111,95 @@ export const getUsuarioById = async (req: Request, res: Response): Promise<void>
     }
 };
 
+// Controlador para obtener etiquetas
+export const getTagsByUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const id = req.params.id;
+        // INCLUIR plan en la consulta
+        const usuario = await modelUsuario.findById(id)
+            .select("encuestaInicio.etiquetas")
+            .populate("encuestaInicio.etiquetas")
+            .lean();
+
+        const etiquetas = usuario?.encuestaInicio?.etiquetas ?? [];
+        
+        if (!usuario) {
+            res.status(404).json({ 
+                success: false, 
+                message: 'Usuario no encontrado' 
+            });
+            return;
+        }
+
+        res.status(200).json({
+            message: "Etiquetas obtenidas correctamente",
+            data: etiquetas
+        });
+    } catch (error) {
+        const err = error as Error;
+        res.status(500).json({ 
+            success: false, 
+            message: err.message 
+        });
+    }
+};
+
 // Controlador para actualizar un usuario
+// Campos de perfil que se pueden cambiar por PUT /usuario/:id. Todo lo demás
+// (tipoUsuario, plan, fechaVencimientoPremium, limitePublicaciones,
+// puedeCrearCuentaRegresiva, email, emailConfirmado, tokenConfirmacion*, codigo...)
+// se ignora aquí, incluso para admins: esos cambios van por sus rutas dedicadas
+// (/:id/membresia, /:id/limite, /:id/premium-vencimiento, /:id/cuenta-regresiva),
+// que aplican las reglas de jerarquía entre roles.
+const CAMPOS_EDITABLES_USUARIO = ['nombre', 'apellido', 'password', 'encuestaInicio'] as const;
+
 export const updateUsuario = async (req: Request, res: Response): Promise<void> => {
     try {
         const id = req.params.id;
-        const usuario: Partial<Usuario> = req.body;
+        const actor: any = (req as any).user;
+        const actorId = actor?._id ? String(actor._id) : '';
+        const actorTipo = Number(actor?.tipoUsuario);
+        const esPropio = actorId !== '' && actorId === String(id);
 
-        // If password is included in the update, hash it before saving
-        if (usuario.password) {
+        if (!esPropio) {
+            // Básicos/premium solo pueden editarse a sí mismos.
+            if (actorTipo !== 0 && actorTipo !== 1) {
+                res.status(403).json({ message: 'No autorizado: solo puede modificar su propio usuario' });
+                return;
+            }
+            const objetivo: any = await modelUsuario.findById(id).select('tipoUsuario');
+            if (!objetivo) {
+                res.status(404).json({ message: 'Usuario no encontrado' });
+                return;
+            }
+            // Un admin (1) no puede modificar a otro admin ni al superadmin.
+            if (actorTipo === 1 && (objetivo.tipoUsuario === 0 || objetivo.tipoUsuario === 1)) {
+                res.status(403).json({ message: 'No autorizado: un admin no puede modificar a otro admin/superadmin' });
+                return;
+            }
+        }
+
+        const body: any = req.body || {};
+        const usuario: Record<string, any> = {};
+        for (const campo of CAMPOS_EDITABLES_USUARIO) {
+            if (body[campo] !== undefined) usuario[campo] = body[campo];
+        }
+
+        if (usuario.password !== undefined) {
+            if (typeof usuario.password !== 'string' || !usuario.password.trim()) {
+                res.status(400).json({ message: 'La contraseña no puede estar vacía' });
+                return;
+            }
             usuario.password = await hashPassword(usuario.password);
         }
-        const user = await modelUsuario.findByIdAndUpdate(id, usuario, { new: true });
+        if (usuario.encuestaInicio !== undefined) {
+            usuario.encuestaInicio = normalizeEncuestaInicio(usuario.encuestaInicio);
+        }
+        const user = await modelUsuario.findByIdAndUpdate(id, { $set: usuario }, { new: true }).select('-password');
+        if (!user) {
+            res.status(404).json({ message: 'Usuario no encontrado' });
+            return;
+        }
         res.status(200).json(user);
     } catch (error) {
         const err = error as Error;
@@ -356,10 +453,10 @@ export async function enviarCorreoRecuperacion(req: Request, res: Response): Pro
 
     // setup del transporter de nodemailer para enviar correos
     const transporter = createTransport({
-        service: 'zoho',
-        host: 'smtp.zoho.com',
-        port: 2525,
-        secure: false,
+        service: 'gmail',
+        //host: 'smtp.zoho.com',
+        //port: 2525,
+        //secure: false,
         auth: {
             user: process.env.MAIL_USER,
             pass: process.env.MAIL_PASS
@@ -375,7 +472,7 @@ export async function enviarCorreoRecuperacion(req: Request, res: Response): Pro
 
     // opciones del correo electrónico con la nueva contraseña
     const mailOptions = {
-        from: process.env.MAIL_USER || 'komuness334@zohomail.com',
+        from: `"Komuness" <${process.env.MAIL_USER}>`,
         to: email,
         subject: 'Recuperación de contraseña',
         html: `
@@ -447,6 +544,49 @@ export const actualizarLimiteUsuario = async (req: Request, res: Response): Prom
             success: false,
             message: err.message
         });
+    }
+};
+
+/**
+ * UI65: dar o quitar el permiso de crear cuentas regresivas (solo admins)
+ */
+export const actualizarPermisoCuentaRegresiva = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const { puedeCrearCuentaRegresiva } = req.body;
+
+        if (typeof puedeCrearCuentaRegresiva !== 'boolean') {
+            res.status(400).json({
+                success: false,
+                message: 'puedeCrearCuentaRegresiva debe ser true o false'
+            });
+            return;
+        }
+
+        if (!mongoose.isValidObjectId(id)) {
+            res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+            return;
+        }
+
+        const usuario = await modelUsuario.findByIdAndUpdate(
+            id,
+            { puedeCrearCuentaRegresiva },
+            { new: true }
+        ).select('-password');
+
+        if (!usuario) {
+            res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+            return;
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Permiso de cuenta regresiva actualizado',
+            data: usuario
+        });
+    } catch (error) {
+        const err = error as Error;
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 

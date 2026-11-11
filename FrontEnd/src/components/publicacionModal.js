@@ -1,20 +1,11 @@
-import { useNavigate, useLocation } from "react-router-dom";
 import { API_URL } from '../utils/api';
 import { useState } from 'react';
 
 export const PublicacionModal = ({ name, date, tag, id, isOpen, onClose }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
   const [showSuccess, setShowSuccess] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   if (!isOpen && !showSuccess) return null;
-
-  const rutas = {
-    evento: `/eventos`,
-    emprendimiento: `/emprendimientos`,
-    publicacion: `/publicaciones`
-  };
 
   const eliminarPublicacion = async () => {
     try {
@@ -42,7 +33,7 @@ export const PublicacionModal = ({ name, date, tag, id, isOpen, onClose }) => {
     
 
       if (res.ok) {
-        const data = await res.json();
+        await res.json();
         
         
         setIsDeleting(false);

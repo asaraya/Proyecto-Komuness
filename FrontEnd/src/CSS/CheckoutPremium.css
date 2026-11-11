@@ -129,3 +129,79 @@
 .animate-scale-in {
   animation: scale-in 0.3s ease-out;
 }
+
+@media screen and (max-width: 768px) {
+  .plan-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  .animate-glow {
+    animation: glow 3s ease-in-out infinite;
+  }
+
+  .animate-bounce-soft {
+    animation: bounce-soft 1.5s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    background-size: 500px 100%;
+    animation: shimmer 3s infinite;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .plan-card:hover {
+    transform: none;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  @keyframes bounce-soft-mobile {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+  }
+
+  .animate-bounce-soft {
+    animation: bounce-soft-mobile 2s ease-in-out infinite;
+  }
+
+  @keyframes shake-mobile {
+    0%, 100% { transform: translateX(0); }
+    25%, 75% { transform: translateX(-3px); }
+    50% { transform: translateX(3px); }
+  }
+
+  .animate-shake {
+    animation: shake-mobile 0.4s ease-in-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-shake,
+  .animate-soft-pulse,
+  .animate-slide-down,
+  .animate-shimmer,
+  .animate-spin-slow,
+  .animate-bounce-soft,
+  .animate-glow,
+  .animate-fade-in,
+  .animate-scale-in,
+  .progress-wave {
+    animation: none !important;
+  }
+
+  .plan-card:hover {
+    transform: none;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .plan-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .plan-card.animate-glow {
+    animation: glow 2s ease-in-out infinite;
+  }
+}

@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --theme-site-background-color: #5445ff;
+  --theme-site-background-image: none;
+  --theme-navbar-bg: #ffbf30;
+  --theme-navbar-text: #000000;
+  --theme-navbar-active-bg: #e5a800;
+  --theme-navbar-active-text: #ffffff;
+  --theme-card-bg: #5445ff;
+  --theme-card-text: #f0f2f7;
+  --theme-card-secondary-text: #b4cff8;
+  --theme-card-border: #4c3df0;
+}
+
 *{
   box-sizing: border-box;
   margin: 0;
@@ -40,12 +53,13 @@ html, body {
 }
 
 body{
-    font-size: 1.2rem;
+  font-size: 1.2rem;
   line-height: 1.3;
   font-family: 'Gotham', sans-serif;
   color: white;
-  background-color: #5445ff;
-  background-image: url("../../public/background.png");
+  background-color: var(--theme-site-background-color);
+  background-image: var(--theme-site-background-image);
   background-size: cover;
-
+  background-position: center;
+  background-repeat: no-repeat;
 }

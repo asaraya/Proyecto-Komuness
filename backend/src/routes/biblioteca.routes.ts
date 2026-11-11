@@ -4,6 +4,7 @@ import BibliotecaController, { uploadLibrary } from "../controllers/biblioteca.c
 // import { upload } from "../middlewares/multer.middleware";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { verificarRoles } from "../middlewares/roles.middleware";
+import { secureUploads } from "../utils/uploadSecurity";
 //const storage = multer.memoryStorage();
 //const upload = multer({ storage });
 
@@ -34,7 +35,66 @@ const router = Router();
 // solo los tipoUsuarios 0, 1 y 2 pueden subir archivos
 // router.post("/upload", upload.array('archivos'), authMiddleware, verificarRoles([0, 1, 2]), BibliotecaController.uploadFiles as any);
 // RF023: Ahora usuarios básicos (2) y premium (3) también pueden subir archivos
-router.post("/upload", authMiddleware, verificarRoles([0, 1, 2, 3]), uploadLibrary.array('archivos'), BibliotecaController.uploadFiles as any
+router.post("/upload", authMiddleware, verificarRoles([0, 1, 2, 3]), uploadLibrary, secureUploads('library'), BibliotecaController.uploadFiles as any
+);
+
+
+/**
+ * MOVE FILES ENTRE CARPETAS
+ *
+ * Posibles respuestas del endpoint:
+ *
+ * HTTP 200 (archivos movidos exitosamente):
+ * {
+ *   success: true,
+ *   message: 'Archivos movidos correctamente',
+ *   results: [
+ *     {
+ *       success: true,
+ *       fileId: "id_del_archivo",
+ *       message: "Archivo movido correctamente"
+ *     },
+ *     ...
+ *   ]
+ * }
+ *
+ * HTTP 400:
+ * {
+ *   success: false,
+ *   message: 'No se enviaron archivos o falta carpeta destino'
+ * }
+ *
+ * HTTP 403:
+ * {
+ *   success: false,
+ *   message: 'No tienes permisos para mover archivos'
+   }
+ *
+ * HTTP 404:
+ * {
+ *   success: false,
+ *   message: 'Algún archivo o carpeta no existe'
+ * }
+ *
+ * HTTP 500:
+ * {
+ *   success: false,
+ *   message: 'Error al mover los archivos'
+ * }
+ *
+ * REGLAS:
+ * - Solo usuarios con tipoUsuario 0, 1, 2 y 3 pueden mover archivos
+ * - Los archivos cambian únicamente su campo `folder`
+ * - No se duplican archivos, solo se actualiza su ubicación
+ *
+ */
+
+// Endpoint MOVE FILES
+router.put(
+  "/move",
+  authMiddleware,
+  verificarRoles([0, 1]),
+  BibliotecaController.moveFiles as any
 );
 
 /* ====================== NUEVO: descarga del binario ====================== */
@@ -179,6 +239,19 @@ router.post("/folder", authMiddleware, verificarRoles([0, 1]), BibliotecaControl
  */
 //solo los tipoUsuarios 0 y 1  pueden eliminar carpetas
 router.route("/folder/:id").delete(authMiddleware, verificarRoles([0, 1]), BibliotecaController.deleteFolder as any);
+
+
+
+
+
+router.put("/folder/move", authMiddleware, verificarRoles([0, 1]), BibliotecaController.moveFolders as any);
+
+
+
+
+
+
+
 /**
  * Posibles respuestas del endpoint: actualizacion de los metadatos del archivo
  * HTTP 200:

@@ -1,0 +1,384 @@
+/* ============================================================
+   quienesSomosSection.css
+   Misma lógica que inicioPrincipal.css: colores de fondo fijos
+   (no --theme-card-bg, que resuelve en tonos dorados y rompe el
+   contraste con texto blanco). El acento dorado del theme se
+   reserva para iconos, bordes y hovers, nunca como relleno grande.
+
+   Ritmo de fondo de la página: banda sólida (esta sección empieza
+   aquí, continuando el color de la banda de presentación del hero)
+   → banda con el patrón del sitio (detrás de "qué hacemos...") →
+   banda sólida para el resto.
+   ============================================================ */
+
+.qs-root {
+  --kw-accent: var(--theme-navbar-bg, #f5c242);
+  --kw-navy: #12143d;
+  --kw-navy-soft: #181c4d;
+  --kw-card: #1f234f;
+  --kw-card-border: rgba(255, 255, 255, 0.08);
+  --kw-text: #f5f6fa;
+  --kw-text-muted: #b7bbd9;
+
+  /* Escala de espacios (la misma de la portada) y una sola columna
+     de 72rem para que títulos y contenido compartan el borde izquierdo */
+  --kw-space-section: clamp(4rem, 8vw, 6rem);
+  --kw-space-title: 1.5rem;
+  --kw-wrap: 72rem;
+  --kw-measure: 62ch;
+
+  position: relative;
+  color: var(--kw-text);
+}
+
+.qs-block {
+  padding: var(--kw-space-section) clamp(1.25rem, 5vw, 3rem);
+}
+
+.qs-block-title {
+  max-width: var(--kw-wrap);
+  margin: 0 auto var(--kw-space-title);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 2.6vw, 1.9rem);
+  letter-spacing: -0.01em;
+  text-align: left;
+}
+
+/* ===== Presentación (banda sólida) ===== */
+/* Continúa la banda del eslogan (mismo color): una línea fina marca
+   el cambio de tema sin abrir otro bloque vacío */
+.qs-intro {
+  background: var(--kw-navy-soft);
+  text-align: left;
+  padding-top: 0;
+}
+
+.qs-intro-inner {
+  max-width: var(--kw-wrap);
+  margin: 0 auto;
+  padding-top: calc(var(--kw-space-section) * 0.75);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.qs-eyebrow-free {
+  max-width: 24ch;
+  font-weight: 700;
+  font-size: clamp(1.75rem, 3.4vw, 2.4rem);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  margin: 0 0 var(--kw-space-title);
+}
+
+.qs-lede {
+  max-width: var(--kw-measure);
+  font-size: clamp(1.05rem, 1.5vw, 1.15rem);
+  line-height: 1.65;
+  color: var(--kw-text-muted);
+  white-space: pre-line;
+  text-wrap: pretty;
+}
+
+/* ===== Capítulos: banda con el patrón del sitio ===== */
+.qs-chapters-band {
+  position: relative;
+  background-color: var(--kw-navy);
+  background-image: var(--theme-site-background-image, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: var(--kw-space-section) clamp(1.25rem, 5vw, 3rem);
+}
+
+/* Capa oscura sobre el patrón: lo deja como una textura de fondo
+   (igual de atenuado que detrás de la portada) para que no compita
+   con el texto */
+.qs-chapters-band-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(18, 20, 61, 0.9) 0%,
+    rgba(18, 20, 61, 0.94) 100%
+  );
+}
+
+/* Capítulos como lista editorial: una fila por capítulo (ícono,
+   título, texto), alineada a la izquierda. Cada fila mide lo que
+   mide su texto: sin tarjetas estiradas ni huecos vacíos. */
+.qs-chapters-grid {
+  position: relative;
+  z-index: 1;
+  max-width: var(--kw-wrap);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.qs-chapter-card {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(10rem, 15rem) minmax(0, 1fr);
+  column-gap: 1.5rem;
+  align-items: start;
+  padding: 2rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: left;
+}
+
+.qs-chapter-card:last-child {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.qs-chapter-icon {
+  display: flex;
+  align-items: center;
+  height: 1.6rem;
+  color: var(--kw-accent);
+  font-size: 1.15rem;
+}
+
+.qs-chapter-label {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1.35;
+}
+
+.qs-chapter-text {
+  max-width: var(--kw-measure);
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--kw-text-muted);
+  white-space: pre-line;
+  text-wrap: pretty;
+}
+
+@media (max-width: 768px) {
+  .qs-chapter-card {
+    grid-template-columns: 1.75rem minmax(0, 1fr);
+    column-gap: 0.75rem;
+    row-gap: 0.75rem;
+    padding: 1.75rem 0;
+  }
+
+  .qs-chapter-text {
+    grid-column: 2;
+  }
+}
+
+/* ===== Equipo (banda sólida) ===== */
+.qs-equipo {
+  background: var(--kw-navy-soft);
+}
+
+.qs-equipo-grid {
+  max-width: var(--kw-wrap);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1.5rem;
+}
+
+.qs-member {
+  background: var(--kw-card);
+  border: 1px solid var(--kw-card-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.qs-member-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.qs-member-photo {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 2px solid var(--kw-accent);
+  flex-shrink: 0;
+}
+
+.qs-member-photo--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--kw-accent);
+}
+
+.qs-member-heading {
+  display: flex;
+  flex-direction: column;
+}
+
+.qs-member-name {
+  font-weight: 700;
+  color: var(--kw-text);
+}
+
+.qs-member-role {
+  font-size: 0.85rem;
+  color: var(--kw-text-muted);
+}
+
+.qs-member-bio {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--kw-text-muted);
+  white-space: pre-line;
+}
+
+.qs-member-details {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--kw-card-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.qs-member-detail-group {
+  font-size: 0.85rem;
+}
+
+.qs-member-detail-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  color: var(--kw-accent);
+  margin-bottom: 0.35rem;
+}
+
+.qs-member-detail-group ul {
+  padding-left: 1.1rem;
+  color: var(--kw-text-muted);
+}
+
+.qs-member-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.qs-member-links a {
+  font-size: 0.8rem;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  color: var(--kw-text);
+}
+
+/* ===== Colaborar (banda sólida) ===== */
+.qs-colaborar {
+  background: var(--kw-navy);
+}
+
+.qs-colaborar-grid {
+  max-width: var(--kw-wrap);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1.5rem;
+}
+
+.qs-colaborar-card {
+  background: var(--kw-card);
+  border: 1px solid var(--kw-card-border);
+  border-radius: 12px;
+  padding: 1.75rem;
+}
+
+.qs-colaborar-heading {
+  display: block;
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 1rem;
+  color: var(--kw-text);
+}
+
+.qs-bank-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--kw-card-border);
+  font-size: 0.85rem;
+}
+
+.qs-bank-list dt {
+  color: var(--kw-text-muted);
+  flex-shrink: 0;
+}
+
+.qs-bank-list dd {
+  text-align: right;
+  word-break: break-word;
+  color: var(--kw-text);
+}
+
+.qs-especie-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--kw-text-muted);
+}
+
+/* Sangría francesa: si el texto ocupa dos líneas, la segunda
+   arranca alineada con la primera y no debajo del guion */
+.qs-especie-list li {
+  position: relative;
+  padding-left: 1.5em;
+  text-wrap: pretty;
+}
+
+.qs-especie-list li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: var(--kw-accent);
+}
+
+.qs-colaborar-social {
+  display: flex;
+  gap: 0.85rem;
+  margin-top: 1.25rem;
+}
+
+.qs-colaborar-social a {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--kw-text);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.qs-colaborar-social a:hover {
+  background: var(--kw-accent);
+  color: var(--kw-navy);
+}
+
+/* ===== Accesibilidad ===== */
+@media (prefers-reduced-motion: reduce) {
+  .qs-colaborar-social a {
+    transition: none;
+  }
+}

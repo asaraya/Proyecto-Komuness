@@ -4,16 +4,12 @@ import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'moment/locale/es';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { useNavigate } from 'react-router-dom';
 import { IoMdArrowRoundBack } from "react-icons/io";
 import '../CSS/calendar.css';
+import EventoDetalleModal from './EventoDetalleModal';
+import { API_URL } from '../utils/api';
 
 moment.locale('es');
-
-// Base de API robusta (evita /api/api)
-const RAW = process.env.REACT_APP_BACKEND_URL || window.location.origin;
-const BASE = (RAW || '').replace(/\/+$/, '');
-const API = BASE.endsWith('/api') ? BASE : `${BASE}/api`;
 
 const localizer = momentLocalizer(moment);
 
@@ -75,15 +71,15 @@ export const CalendarView = () => {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState('month');
   const [categoryLegend, setCategoryLegend] = useState([]);
+  const [selectedEvento, setSelectedEvento] = useState(null);
+  const [modalAbierto, setModalAbierto] = useState(false);
 
   const [currentDate, setCurrentDate] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), now.getDate());
   });
 
-  const navigate = useNavigate();
-
-  useEffect(() => { 
+  useEffect(() => {
     fetchEvents(currentDate); 
   }, [currentDate]);
 
@@ -95,7 +91,7 @@ export const CalendarView = () => {
       const endOfMonth = dateMoment.endOf('month').format('YYYY-MM-DD');
 
       const response = await fetch(
-        `${API}/publicaciones/eventos/calendario?startDate=${startOfMonth}&endDate=${endOfMonth}`
+        `${API_URL}/publicaciones/eventos/calendario?startDate=${startOfMonth}&endDate=${endOfMonth}`
       );
       if (!response.ok) throw new Error('Error al cargar eventos');
 
@@ -121,7 +117,7 @@ export const CalendarView = () => {
           style: {
             backgroundColor: eventColor,
             borderColor: eventColor,
-            color: '#ffffff',
+            color: '#12143d',
             borderRadius: '4px',
             opacity: 0.9,
             fontWeight: 'bold'
@@ -146,8 +142,14 @@ export const CalendarView = () => {
     }
   };
 
-  const handleSelectEvent = (event) => { 
-    navigate(`/publicaciones/${event.id}`); 
+  const handleSelectEvent = (event) => {
+    setSelectedEvento(event.resource);
+    setModalAbierto(true);
+  };
+
+  const handleCerrarModal = () => {
+    setModalAbierto(false);
+    setSelectedEvento(null);
   };
   
   const handleNavigate = (newDate) => { 
@@ -175,31 +177,25 @@ export const CalendarView = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="calendario-container calendario-loading">
+        <div className="calendario-spinner"></div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-4 md:p-6 mx-2 md:mx-4 my-4 relative">
-      <div className="absolute top-4 left-4 z-20">
-        <button type="button" onClick={() => navigate(-1)} className="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors shadow-md">
-          <IoMdArrowRoundBack color="black" size={25} />
-        </button>
-      </div>
-
+    <div className="calendario-container p-4 md:p-6 mx-2 md:mx-4 my-4 relative">
       <div className="text-center mb-4 md:mb-6">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-800">Calendario de Eventos</h2>
-        <p className="text-lg md:text-xl text-gray-600 mt-2">
+        <h2 className="calendario-titulo text-xl md:text-2xl font-bold">Calendario de Eventos</h2>
+        <p className="calendario-mes text-lg md:text-xl mt-2">
           {moment(currentDate).format('MMMM YYYY').replace(/^\w/, c => c.toUpperCase())}
         </p>
       </div>
 
       {/* Leyenda de categorías */}
       {categoryLegend.length > 0 && (
-        <div className="category-legend mb-4 p-3 bg-gray-700 rounded-lg">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">Leyenda de Categorías:</h3>
+        <div className="category-legend mb-4 p-3">
+          <h3 className="text-sm font-semibold mb-2">Leyenda de Categorías:</h3>
           <div className="flex flex-wrap gap-2">
             {categoryLegend.map((item, index) => (
               <div key={index} className="flex items-center gap-1 text-xs">
@@ -228,9 +224,9 @@ export const CalendarView = () => {
           today={getTodayDate()}
           views={['month', 'agenda']}
           style={{ height: '100%' }}
-          eventPropGetter={(event) => ({
-            style: event.style
-          })}
+          // En Agenda la biblioteca pinta toda la fila con este estilo; ahí se
+          // deja el fondo del tema y la categoría se ve en su etiqueta.
+          eventPropGetter={(event) => (view === 'agenda' ? {} : { style: event.style })}
           components={{
             event: EventComponent
           }}
@@ -250,6 +246,12 @@ export const CalendarView = () => {
           }}
         />
       </div>
+
+      <EventoDetalleModal
+        evento={selectedEvento}
+        isOpen={modalAbierto}
+        onClose={handleCerrarModal}
+      />
     </div>
   );
 };

@@ -16,3 +16,4 @@ const categoriaSchema = new Schema<ICategoria>({
 });
 
 export const modelCategoria = model<ICategoria>("Categoria", categoriaSchema);
+

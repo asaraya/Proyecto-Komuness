@@ -13,5 +13,11 @@ const archivoSchema = new mongoose_1.Schema({
     url: { type: String, required: true }, // URL de descarga del archivo en digitalOcean Spaces
     key: { type: String, required: true }, // Nombre del archivo en digitalOcean Spaces
     folder: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Folder', default: null },
+    estado: {
+        type: String,
+        enum: ['pendiente', 'aprobado', 'rechazado'],
+        default: 'aprobado' // Por defecto aprobado para admins, se cambiará en el controlador para usuarios básicos/premium
+    },
+    uploadedBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Usuario', required: true }, // Usuario que subió el archivo
 });
 exports.Archivo = (0, mongoose_1.model)('Archivo', archivoSchema);

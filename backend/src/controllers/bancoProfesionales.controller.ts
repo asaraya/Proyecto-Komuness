@@ -1,6 +1,36 @@
 import { Request, Response } from 'express';
 import { modelPerfil } from '../models/perfil.model';
 import { modelUsuario } from '../models/usuario.model';
+import { obtenerFaltantesBanco } from '../utils/perfilElegibilidad';
+
+const escapeRegExp = (value: string): string => {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+// Clases de caracteres que incluyen la letra con y sin acento (mayúscula y minúscula)
+const ACCENT_CLASSES: Record<string, string> = {
+  a: '[aáàäâAÁÀÄÂ]',
+  e: '[eéèëêEÉÈËÊ]',
+  i: '[iíìïîIÍÌÏÎ]',
+  o: '[oóòöôOÓÒÖÔ]',
+  u: '[uúùüûUÚÙÜÛ]',
+  n: '[nñNÑ]',
+  c: '[cçCÇ]'
+};
+
+const sinAcento = (char: string): string =>
+  char.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+/**
+ * Construye un patrón de regex que ignora mayúsculas y acentos y escapa
+ * los caracteres especiales para evitar regex inválidas o ReDoS.
+ */
+const patronInsensibleAcentos = (value: string): string =>
+  value
+    .trim()
+    .split('')
+    .map((char) => ACCENT_CLASSES[sinAcento(char)] || escapeRegExp(char))
+    .join('');
 
 /**
  * Obtener listado de profesionales aprobados para el banco
@@ -8,22 +38,33 @@ import { modelUsuario } from '../models/usuario.model';
  */
 export const obtenerProfesionales = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { search, page = 1, limit = 12 } = req.query;
-    
+    const { search, provincia, canton, page = 1, limit = 12 } = req.query;
+
     // Construir query base - solo perfiles que están en el banco y son públicos
-    const query: any = { 
+    const query: any = {
       enBancoProfesionales: true,
       perfilPublico: true
     };
 
     // Búsqueda por nombre si se proporciona
     if (search && typeof search === 'string') {
+      const searchPattern = patronInsensibleAcentos(search);
       query.$or = [
-        { nombre: { $regex: search, $options: 'i' } },
-        { apellidos: { $regex: search, $options: 'i' } },
-        { ocupacionPrincipal: { $regex: search, $options: 'i' } },
-        { especialidad: { $regex: search, $options: 'i' } }
+        { nombre: { $regex: searchPattern, $options: 'i' } },
+        { apellidos: { $regex: searchPattern, $options: 'i' } },
+        { ocupacionPrincipal: { $regex: searchPattern, $options: 'i' } },
+        { especialidad: { $regex: searchPattern, $options: 'i' } }
       ];
+    }
+
+    // Filtro por provincia (coincidencia exacta, insensible a mayúsculas y acentos)
+    if (provincia && typeof provincia === 'string' && provincia.trim() !== '') {
+      query.provincia = { $regex: `^${patronInsensibleAcentos(provincia)}$`, $options: 'i' };
+    }
+
+    // Filtro por cantón/zona (coincidencia parcial, insensible a mayúsculas y acentos)
+    if (canton && typeof canton === 'string' && canton.trim() !== '') {
+      query.canton = { $regex: patronInsensibleAcentos(canton), $options: 'i' };
     }
 
     const pageNum = parseInt(page as string);
@@ -63,12 +104,37 @@ export const obtenerProfesionales = async (req: Request, res: Response): Promise
 };
 
 /**
+ * ver si un usuario es profesional
+ * @route GET /api/banco-profesionales/es-profesional/:id
+ */
+export const esProfesional = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const perfil = await modelPerfil.findOne({ 
+      usuarioId: id,
+      enBancoProfesionales: true,
+      perfilPublico: true
+    });
+
+    res.status(200).json({
+      success: true,
+      esProfesional: !!perfil
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error al verificar profesional' });
+  }
+};
+
+/**
  * Unirse/Retirarse del banco de profesionales
  * @route PUT /api/banco-profesionales/toggle
  */
 export const toggleBancoProfesionales = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).user._id;
+    const user = (req as any).user;
+    const userId = user._id;
+    const esAdmin = user?.tipoUsuario === 0 || user?.tipoUsuario === 1;
 
     const perfil = await modelPerfil.findOne({ usuarioId: userId });
     
@@ -78,6 +144,26 @@ export const toggleBancoProfesionales = async (req: Request, res: Response): Pro
         message: 'Perfil no encontrado'
       });
       return;
+    }
+
+    const quiereUnirse = !perfil.enBancoProfesionales;
+
+    // Validación de elegibilidad en el servidor (no confiar solo en el frontend)
+    if (quiereUnirse && !esAdmin) {
+      const faltantes = obtenerFaltantesBanco(perfil);
+      if (faltantes.length > 0) {
+        res.status(200).json({
+          success: false,
+          message: 'Debes completar tu perfil antes de unirte al banco',
+          data: faltantes
+        });
+        return;
+      }
+    }
+
+    // Un perfil dentro del banco debe ser público para poder listarse
+    if (quiereUnirse) {
+      perfil.perfilPublico = true;
     }
 
     // Toggle del estado
@@ -90,7 +176,8 @@ export const toggleBancoProfesionales = async (req: Request, res: Response): Pro
         ? 'Te has unido al banco de profesionales' 
         : 'Te has retirado del banco de profesionales',
       data: {
-        enBancoProfesionales: perfil.enBancoProfesionales
+        enBancoProfesionales: perfil.enBancoProfesionales,
+        perfilPublico: perfil.perfilPublico
       }
     });
   } catch (error) {
@@ -178,9 +265,12 @@ export const obtenerEstadoBanco = async (req: Request, res: Response): Promise<v
     const perfil = await modelPerfil.findOne({ usuarioId: userId });
     
     if (!perfil) {
-      res.status(404).json({
+      res.status(200).json({
         success: false,
-        message: 'Perfil no encontrado'
+        data: {
+          enBancoProfesionales: false,
+          perfilPublico: false
+        }
       });
       return;
     }

@@ -3,7 +3,7 @@ import { verificarToken } from '../utils/jwt';
 import { modelUsuario } from '../models/usuario.model';
 
 /**
- * Middleware para verificar el token de autenticación recuperado desde el header Authorization (Bearer)
+ * Middleware para verificar el token de autenticación recuperado desde el header Authorization (Bearer) 
  * Además aplica downgrade automático si el premium ya venció.
  */
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

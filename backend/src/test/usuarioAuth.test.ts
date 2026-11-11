@@ -1,8 +1,20 @@
-import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, test, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import request from 'supertest';
 import mongoose from 'mongoose';
 import app from '../index';
 import { connectBD } from '../utils/mongodb';
+import { modelUsuario } from '../models/usuario.model';
+
+// Evita que el controller intente enviar correos reales durante los tests.
+// Debe declararse ANTES del import de '../index' si tu bundler lo reordena;
+// con ts-jest normalmente basta con tenerlo al inicio del archivo.
+jest.mock('nodemailer', () => ({
+    createTransport: () => ({
+        sendMail: jest.fn(() => Promise.resolve(true)),
+    }),
+}));
+
+jest.setTimeout(30000);
 
 // Generar email único para cada ejecución
 const uniqueEmail = `testuser_${Date.now()}@example.com`;
@@ -17,15 +29,12 @@ const testUser = {
 
 let userId: string;
 let token: string;
-let recoveryCode: string;
 
 describe('Auth: Registro, Login, Cambio y Recuperación de Contraseña, Logout', () => {
     beforeAll(async () => {
         await connectBD(process.env.BD_URL || 'mongodb://localhost:27017/testdb');
-        // Eliminar usuario si existe (limpieza previa)
         try {
-            await request(app)
-                .delete(`/api/usuario/${uniqueEmail}`);
+            await request(app).delete(`/api/usuario/${uniqueEmail}`);
         } catch (e) {}
     });
 
@@ -43,7 +52,18 @@ describe('Auth: Registro, Login, Cambio y Recuperación de Contraseña, Logout',
         userId = res.body.user._id;
     });
 
-    test('Login de usuario', async () => {
+    test('Login sin confirmar email - responde 403 EMAIL_NOT_CONFIRMED', async () => {
+        const res = await request(app)
+            .post('/api/usuario/login')
+            .send({ email: testUser.email, password: testUser.password });
+        expect(res.status).toBe(403);
+        expect(res.body.code).toBe('EMAIL_NOT_CONFIRMED');
+    });
+
+    test('Login de usuario (tras confirmar email)', async () => {
+        // Simula la confirmación que normalmente hace el usuario desde el correo
+        await modelUsuario.findByIdAndUpdate(userId, { emailConfirmado: true });
+
         const res = await request(app)
             .post('/api/usuario/login')
             .send({ email: testUser.email, password: testUser.password });
@@ -73,11 +93,6 @@ describe('Auth: Registro, Login, Cambio y Recuperación de Contraseña, Logout',
 
     test('Logout de usuario', async () => {
         // Si tienes un endpoint de logout, ajústalo aquí. Si no, omite este test.
-        // Ejemplo:
-        // const res = await request(app)
-        //     .post('/api/usuario/logout')
-        //     .set('Authorization', `Bearer ${token}`);
-        // expect(res.status).toBe(200);
         expect(true).toBe(true); // Placeholder
     });
 

@@ -100,28 +100,105 @@
   }
 }
 
+@media (max-width: 768px) {
+  .profile-error-modal-card {
+    max-width: 360px;
+    padding: 2rem;
+  }
+
+  .profile-error-modal-icon {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 1.25rem;
+  }
+
+  .profile-error-modal-icon-svg {
+    width: 35px;
+    height: 35px;
+  }
+
+  .profile-error-modal-title {
+    font-size: 1.35rem;
+  }
+
+  .profile-error-modal-close-btn {
+    padding: 0.65rem 1.75rem;
+    font-size: 0.95rem;
+  }
+}
+
 @media (max-width: 480px) {
   .profile-error-modal-card {
-    padding: 2rem 1.5rem;
+    padding: 1.75rem 1.25rem;
     margin: 1rem;
+    max-width: 320px;
+    border-radius: 16px;
   }
-  
+
   .profile-error-modal-icon {
     width: 60px;
     height: 60px;
     margin-bottom: 1rem;
   }
-  
+
   .profile-error-modal-icon-svg {
     width: 30px;
     height: 30px;
   }
-  
+
   .profile-error-modal-title {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
   }
-  
+
   .profile-error-modal-message {
     font-size: 0.9rem;
+  }
+
+  .profile-error-modal-submessage {
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .profile-error-modal-close-btn {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
+    width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .profile-error-modal-card {
+    padding: 1.5rem 1rem;
+    margin: 0.75rem;
+  }
+
+  .profile-error-modal-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .profile-error-modal-icon-svg {
+    width: 25px;
+    height: 25px;
+  }
+
+  .profile-error-modal-title {
+    font-size: 1.1rem;
+  }
+
+  .profile-error-modal-message {
+    font-size: 0.85rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-error-modal-overlay,
+  .profile-error-modal-card {
+    animation: none;
+  }
+
+  .profile-error-modal-close-btn:hover {
+    transform: none;
   }
 }

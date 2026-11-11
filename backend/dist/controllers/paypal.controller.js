@@ -17,21 +17,51 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const paypal_1 = require("../utils/paypal");
 const paymentRetry_1 = require("../utils/paymentRetry");
 const paymentErrorHandler_1 = require("../utils/paymentErrorHandler");
+const configuracion_model_1 = require("../models/configuracion.model");
 const USERS_COL = "usuarios"; // cambia si tu colección de usuarios tiene otro nombre
 const PAY_COL = "payments"; // colección de auditoría/idempotencia
+// AGREGADO PARA EL VENCIMIENTO
+const PLAN_DAYS = {
+    mensual: 30,
+    anual: 365,
+};
+// AGREGADO PARA EL VENCIMIENTO
 function setUserRolePremium(args) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { id, email } = args;
+        const { id, email, plan } = args;
         const users = mongoose_1.default.connection.collection(USERS_COL);
-        const update = { $set: { tipoUsuario: 3 } }; // PREMIUM = 3
+        const filter = {};
         if (id) {
-            yield users.updateOne({ _id: new mongoose_1.default.Types.ObjectId(id) }, update);
+            filter._id = new mongoose_1.default.Types.ObjectId(id);
+        }
+        else if (email) {
+            filter.email = email;
+        }
+        else {
+            console.warn("[PayPal] setUserRolePremium llamado sin id ni email. No se actualizó ningún usuario.");
             return;
         }
-        if (email) {
-            yield users.updateOne({ email }, update);
+        const userDoc = yield users.findOne(filter);
+        if (!userDoc) {
+            console.warn("[PayPal] Usuario no encontrado para setUserRolePremium:", filter);
             return;
         }
+        const now = new Date();
+        const daysToAdd = plan && PLAN_DAYS[plan] ? PLAN_DAYS[plan] : PLAN_DAYS.mensual;
+        let baseDate = now;
+        const existing = userDoc.fechaVencimientoPremium;
+        if (existing instanceof Date && existing > now) {
+            baseDate = existing;
+        }
+        const nuevaFecha = new Date(baseDate.getTime());
+        nuevaFecha.setDate(nuevaFecha.getDate() + daysToAdd);
+        const update = {
+            $set: {
+                tipoUsuario: 3,
+                fechaVencimientoPremium: nuevaFecha,
+            },
+        };
+        const result = yield users.updateOne(filter, update);
     });
 }
 function savePayment(doc) {
@@ -57,25 +87,58 @@ function savePayment(doc) {
         }
     });
 }
-/** POST /api/paypal/capture  body: { orderId }  (opcional) */
+// Función para obtener montos de configuración
+function getMontosConfigurados() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const configs = yield configuracion_model_1.modelConfiguracion.find({
+                clave: { $in: ['plan_mensual_monto', 'plan_anual_monto'] }
+            }).lean();
+            const montos = {
+                mensual: 4.0,
+                anual: 8.0
+            };
+            configs.forEach(config => {
+                if (config.clave === 'plan_mensual_monto') {
+                    montos.mensual = Number(config.valor) || 4.0;
+                }
+                else if (config.clave === 'plan_anual_monto') {
+                    montos.anual = Number(config.valor) || 8.0;
+                }
+            });
+            return montos;
+        }
+        catch (error) {
+            console.error('[PayPal] Error al obtener montos configurados:', error);
+            return { mensual: 4.0, anual: 8.0 };
+        }
+    });
+}
+/** POST /api/paypal/capture  body: { orderId, plan? }  */
 const captureAndUpgrade = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c, _d, _e, _f;
     const retryHistory = [];
     try {
-        const { orderId } = req.body;
+        // AGREGADO PARA EL VENCIMIENTO
+        const { orderId, plan: bodyPlan } = req.body;
         if (!orderId) {
             res.status(400).json({ error: "orderId requerido" });
             return;
         }
-        console.log(`[PayPal] Iniciando captura de orden: ${orderId}`);
+        // 🔐 Usuario autenticado en tu sistema (NO el de PayPal)
+        const authReq = req;
+        const loggedUserId = ((_c = (_b = (_a = authReq.user) === null || _a === void 0 ? void 0 : _a._id) === null || _b === void 0 ? void 0 : _b.toString) === null || _c === void 0 ? void 0 : _c.call(_b)) ||
+            ((_d = authReq.user) === null || _d === void 0 ? void 0 : _d._id) ||
+            authReq.userId ||
+            ((_e = authReq.user) === null || _e === void 0 ? void 0 : _e.id);
+        // Obtener montos configurados
+        const montosConfigurados = yield getMontosConfigurados();
         // Ejecutar captureOrder con sistema de reintentos
         const result = yield (0, paymentRetry_1.retryWithExponentialBackoff)(() => (0, paypal_1.captureOrder)(orderId), {
             maxRetries: 3,
             baseDelay: 1000, // 1 segundo
             timeout: 30000, // 30 segundos
             onRetry: (error, attemptNumber) => {
-                // Loggear cada reintento
-                console.log(`[PayPal] Reintento ${attemptNumber}: ${error.code} - ${error.message}`);
                 // Agregar entrada al historial de reintentos
                 retryHistory.push({
                     timestamp: new Date(),
@@ -96,16 +159,19 @@ const captureAndUpgrade = (req, res) => __awaiter(void 0, void 0, void 0, functi
             try {
                 yield savePayment({
                     orderId,
-                    status: 'FAILED',
+                    status: "FAILED",
                     raw: { error: error.message, code: error.code },
                     source: "capture",
                     attemptNumber: result.attempts,
                     lastError: error.message,
                     retryHistory,
+                    userId: loggedUserId
+                        ? new mongoose_1.default.Types.ObjectId(loggedUserId)
+                        : undefined,
                 });
             }
             catch (saveError) {
-                console.error('[PayPal] Error al guardar intento fallido:', saveError);
+                console.error("[PayPal] Error al guardar intento fallido:", saveError);
             }
             // Responder al cliente con información estructurada
             res.status(httpStatus).json({
@@ -116,12 +182,31 @@ const captureAndUpgrade = (req, res) => __awaiter(void 0, void 0, void 0, functi
             });
             return;
         }
-        // Operación exitosa - continuar con el flujo normal
-        console.log(`[PayPal] ✓ Captura exitosa en ${result.attempts} intento(s)`);
         const data = result.data;
         const resource = data;
         const info = (0, paypal_1.extractPaymentInfo)(resource);
-        const userId = (_a = (0, paypal_1.extractUserId)(resource)) !== null && _a !== void 0 ? _a : undefined;
+        // AGREGADO PARA EL VENCIMIENTO
+        // Determinar plan (mensual/anual) a partir del body o del monto
+        let effectivePlan = "mensual";
+        if (bodyPlan === "mensual" || bodyPlan === "anual") {
+            effectivePlan = bodyPlan;
+        }
+        else {
+            const rawValue = info.value;
+            const amount = typeof rawValue === "string"
+                ? parseFloat(rawValue)
+                : typeof rawValue === "number"
+                    ? rawValue
+                    : Number(rawValue);
+            // Usar montos configurados para determinar el plan
+            if (!Number.isNaN(amount) && amount >= montosConfigurados.anual) {
+                effectivePlan = "anual";
+            }
+            else if (amount >= montosConfigurados.mensual) {
+                effectivePlan = "mensual";
+            }
+        }
+        const paypalUserId = (_f = (0, paypal_1.extractUserId)(resource)) !== null && _f !== void 0 ? _f : undefined;
         const saved = yield savePayment({
             orderId,
             captureId: info.captureId,
@@ -130,28 +215,41 @@ const captureAndUpgrade = (req, res) => __awaiter(void 0, void 0, void 0, functi
             currency: info.currency,
             payerId: info.payerId,
             email: info.email,
-            userId: userId ? new mongoose_1.default.Types.ObjectId(userId) : undefined,
+            userId: loggedUserId
+                ? new mongoose_1.default.Types.ObjectId(loggedUserId)
+                : undefined,
             raw: data,
             source: "capture",
             attemptNumber: result.attempts,
             retryHistory: retryHistory.length > 0 ? retryHistory : undefined,
+            paypalUserId, // por si quieres auditar
         });
         // Solo actualizar usuario a Premium si el pago fue completado y no es duplicado
-        if ((info.status === "COMPLETED" || info.status === "APPROVED") && !saved.idempotent) {
-            yield setUserRolePremium({ id: userId, email: (_b = info.email) !== null && _b !== void 0 ? _b : undefined });
-            console.log(`[PayPal] Usuario actualizado a Premium: ${userId || info.email}`);
+        if ((info.status === "COMPLETED" || info.status === "APPROVED") &&
+            !saved.idempotent) {
+            if (!loggedUserId) {
+                console.warn("[PayPal] Pago completado pero no se encontró usuario autenticado para subir a Premium.");
+            }
+            else {
+                // AGREGADO PARA EL VENCIMIENTO
+                yield setUserRolePremium({ id: loggedUserId, plan: effectivePlan });
+            }
         }
         res.json({
             ok: true,
             status: info.status,
             idempotent: saved.idempotent,
             attempts: result.attempts,
+            // AGREGADO PARA EL VENCIMIENTO
+            plan: effectivePlan,
+            monto: info.value,
+            montoEsperado: effectivePlan === 'anual' ? montosConfigurados.anual : montosConfigurados.mensual
         });
         return;
     }
     catch (e) {
         // Error inesperado no manejado por el sistema de reintentos
-        console.error('[PayPal] Error inesperado en captureAndUpgrade:', e);
+        console.error("[PayPal] Error inesperado en captureAndUpgrade:", (e === null || e === void 0 ? void 0 : e.message) || e);
         res.status(500).json({
             error: "capture_failed",
             message: "Ocurrió un error inesperado al procesar el pago. Por favor, intenta nuevamente.",
@@ -163,7 +261,7 @@ const captureAndUpgrade = (req, res) => __awaiter(void 0, void 0, void 0, functi
 exports.captureAndUpgrade = captureAndUpgrade;
 /** POST /api/paypal/webhook  (URL configurada en PayPal) */
 const webhook = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
+    var _a, _b, _c;
     try {
         const valid = yield (0, paypal_1.verifyWebhookSignature)(req.headers, req.body);
         if (!valid) {
@@ -189,14 +287,14 @@ const webhook = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             source: "webhook",
             event_type: event === null || event === void 0 ? void 0 : event.event_type,
         });
-        const okTypes = new Set(["PAYMENT.CAPTURE.COMPLETED", "CHECKOUT.ORDER.APPROVED"]);
-        if (okTypes.has(event === null || event === void 0 ? void 0 : event.event_type) && (info.status === "COMPLETED" || info.status === "APPROVED") && !saved.idempotent) {
-            yield setUserRolePremium({ id: userId, email: (_d = info.email) !== null && _d !== void 0 ? _d : undefined });
-        }
+        // AGREGADO PARA EL VENCIMIENTO
+        // El upgrade a Premium ahora se hace únicamente en /api/paypal/capture
+        // para evitar sumar días de más cuando también llega el webhook del mismo pago.
         res.json({ ok: true, idempotent: saved.idempotent });
         return;
     }
     catch (e) {
+        console.error("[PayPal] Error en webhook:", (e === null || e === void 0 ? void 0 : e.message) || e);
         res.status(500).json({ error: "webhook_failed", message: e === null || e === void 0 ? void 0 : e.message });
         return;
     }

@@ -1,0 +1,280 @@
+.hero-wrapper {
+  --kw-accent: var(--theme-navbar-bg, #f5c242);
+  --kw-navy: #12143d;
+  --kw-navy-soft: #181c4d;
+  --kw-text: #f5f6fa;
+  --kw-text-muted: #b7bbd9;
+
+  /* Escala de espacios compartida con "Quiénes somos" */
+  --kw-space-section: clamp(4rem, 8vw, 6rem);
+  --kw-space-title: 1.5rem;
+  --kw-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ---------- Portada ----------
+   La galería ocupa casi toda la primera pantalla y la palabra
+   "Komuness" va encima, abajo a la izquierda. El patrón del sitio
+   queda detrás muy atenuado (12 %) para que no compita con las fotos. */
+.hero-portada {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: 100%;
+  background: var(--kw-navy);
+  padding: clamp(1rem, 2.4vw, 1.75rem) 0 clamp(2.5rem, 5vw, 3.5rem);
+}
+
+.hero-portada::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: var(--theme-site-background-image, none);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.12;
+}
+
+.hero-portada-stage {
+  position: relative;
+  /* Mismo margen lateral que el resto de las secciones */
+  width: min(1240px, calc(100% - 2 * clamp(1.25rem, 5vw, 3rem)));
+  margin: 0 auto;
+}
+
+.hero-portada-media {
+  height: min(calc(100vh - 160px), 640px);
+  height: min(calc(100svh - 160px), 640px);
+  min-height: 320px;
+}
+
+/* Sin imágenes: franja con el patrón (oscurecido) y la marca encima */
+.hero-portada-solo {
+  position: relative;
+  aspect-ratio: 21 / 7;
+  min-height: 200px;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: var(--kw-navy-soft);
+  background-image: var(--theme-site-background-image, none);
+  background-size: cover;
+  background-position: center;
+}
+
+.hero-portada-solo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(18, 20, 61, 0.78);
+}
+
+.hero-portada-word {
+  position: absolute;
+  z-index: 3;
+  left: clamp(1.25rem, 4vw, 3rem);
+  bottom: clamp(0.9rem, 3vw, 1.75rem);
+  pointer-events: none;
+  color: var(--kw-text);
+  font-weight: 800;
+  font-size: clamp(2.25rem, 6.4vw, 5.75rem);
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+  text-shadow: 0 2px 28px rgba(9, 10, 30, 0.45);
+}
+
+/* El punto dorado del logo */
+.hero-portada-dot {
+  display: inline-block;
+  width: 0.16em;
+  height: 0.16em;
+  margin-left: 0.06em;
+  border-radius: 50%;
+  background: var(--kw-accent);
+}
+
+/* ---------- Banda sólida: presentación (eslogan + frase) ---------- */
+.hero-copy-band {
+  width: 100%;
+  background: var(--kw-navy-soft);
+  padding: var(--kw-space-section) clamp(1.25rem, 5vw, 3rem)
+    calc(var(--kw-space-section) * 0.75);
+  display: flex;
+  justify-content: center;
+}
+
+.hero-copy {
+  width: min(760px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.hero-copy-title {
+  margin: 0;
+  font-size: clamp(1.9rem, 4vw, 2.85rem);
+  line-height: 1.12;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--kw-text);
+  text-wrap: balance;
+  max-width: 22ch;
+}
+
+.hero-copy-text {
+  margin: 1rem 0 0;
+  font-size: clamp(1.05rem, 1.6vw, 1.2rem);
+  line-height: 1.55;
+  color: var(--kw-text-muted);
+  max-width: 55ch;
+  text-wrap: pretty;
+}
+
+/* Acciones: botón principal y redes en una sola fila */
+.hero-copy-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem 1.25rem;
+  margin-top: 2rem;
+}
+
+.hero-copy-redes {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.hero-copy-redes a {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kw-text);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    transform 140ms var(--kw-ease-out);
+  font-size: 1rem;
+  touch-action: manipulation;
+}
+
+.hero-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.75rem 1.75rem;
+  border-radius: 999px;
+  background: var(--kw-accent);
+  color: #12143d;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    filter 200ms ease,
+    transform 140ms var(--kw-ease-out);
+  touch-action: manipulation;
+}
+
+.hero-copy-btn:active,
+.hero-copy-redes a:active {
+  transform: scale(0.97);
+}
+
+.hero-copy-btn:focus-visible,
+.hero-copy-redes a:focus-visible {
+  outline: 2px solid var(--kw-accent);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hero-copy-btn:hover {
+    filter: brightness(1.06);
+  }
+
+  .hero-copy-redes a:hover {
+    background: var(--kw-accent);
+    border-color: var(--kw-accent);
+    color: #12143d;
+  }
+}
+
+/* ---------- Botón de administración: editar la página de inicio ----------
+   Fijo abajo a la derecha, solo lo ven super-admin y admin. */
+.inicio-editar {
+  position: fixed;
+  z-index: 900;
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.65rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: #12143d;
+  color: #f5f6fa;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 14px 32px -12px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.inicio-editar svg {
+  color: var(--theme-navbar-bg, #f5c242);
+  font-size: 0.8rem;
+}
+
+.inicio-editar:active {
+  transform: scale(0.97);
+}
+
+.inicio-editar:focus-visible {
+  outline: 2px solid var(--theme-navbar-bg, #f5c242);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .inicio-editar:hover {
+    background: #1f234f;
+    border-color: var(--theme-navbar-bg, #f5c242);
+  }
+}
+
+@media (max-width: 560px) {
+  .hero-portada-media {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-copy-title {
+    max-width: 26ch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-copy-btn,
+  .hero-copy-redes a {
+    transition: none;
+  }
+}

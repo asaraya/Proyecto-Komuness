@@ -1,0 +1,461 @@
+/* ============================================================
+   carruselPortada.css
+   Galería de la portada (Home). Comparte el marco de la portada
+   "Komuness": mismo radio, misma sombra, mismo azul de fondo, y el
+   dorado del theme solo como acento (punto activo, foco).
+   ============================================================ */
+
+.hc {
+  --hc-navy: #12143d;
+  --hc-navy-soft: #181c4d;
+  --hc-accent: var(--theme-navbar-bg, #f5c242);
+  --hc-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: var(--hc-navy-soft);
+  box-shadow: 0 28px 56px -32px rgba(0, 0, 0, 0.7);
+}
+
+/* ---------- Pista con scroll-snap nativo ---------- */
+.hc-track {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  outline: none;
+}
+
+.hc-track::-webkit-scrollbar {
+  display: none;
+}
+
+.hc-slide {
+  position: relative;
+  flex: 0 0 100%;
+  height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.hc-media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background-color: var(--hc-navy);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Imagen que no cargó: el patrón del sitio en vez del ícono roto */
+.hc-media--roto {
+  position: relative;
+}
+
+.hc-media--roto,
+.hc--cargando {
+  background-color: var(--hc-navy);
+  background-image: var(--theme-site-background-image, none);
+  background-size: cover;
+  background-position: center;
+}
+
+.hc-media--roto::after,
+.hc--cargando::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  height: auto;
+  background: rgba(18, 20, 61, 0.7);
+}
+
+.hc--cargando::after {
+  animation: hc-pulso 1.6s ease-in-out infinite;
+}
+
+@keyframes hc-pulso {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Degradado abajo: la marca "Komuness" y las líneas de avance se
+   leen sobre cualquier foto */
+.hc::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 60%;
+  background: linear-gradient(180deg, rgba(18, 20, 61, 0) 0%, rgba(18, 20, 61, 0.82) 100%);
+  pointer-events: none;
+}
+
+/* ---------- Botones (flechas, ampliar, cerrar) ---------- */
+.hc-btn {
+  position: absolute;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.95rem;
+  background: rgba(18, 20, 61, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    background-color 160ms ease,
+    opacity 200ms var(--hc-ease-out, ease-out),
+    transform 140ms var(--hc-ease-out, ease-out);
+}
+
+.hc-btn:active {
+  transform: scale(0.94);
+}
+
+.hc-btn:focus-visible {
+  outline: 2px solid var(--hc-accent, #f5c242);
+  outline-offset: 2px;
+}
+
+.hc-btn:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hc-btn:hover {
+    background: rgba(18, 20, 61, 0.9);
+  }
+}
+
+.hc-nav {
+  top: 50%;
+  margin-top: -22px;
+}
+
+.hc-nav--prev {
+  left: 14px;
+}
+
+.hc-nav--next {
+  right: 14px;
+}
+
+.hc-expand {
+  top: 14px;
+  right: 14px;
+  background: transparent;
+  border-color: transparent;
+  opacity: 0.8;
+}
+
+/* ---------- Indicador: líneas de avance o contador ----------
+   Abajo a la derecha, para no chocar con la marca (abajo a la izquierda). */
+.hc-indicador {
+  position: absolute;
+  z-index: 2;
+  right: clamp(0.75rem, 3vw, 2rem);
+  bottom: clamp(1rem, 3vw, 1.9rem);
+  display: flex;
+  align-items: center;
+  max-width: calc(100% - 24px);
+}
+
+.hc-dot {
+  position: relative;
+  width: 26px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hc-dot::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 2px;
+  margin: -1px 0 0 -10px;
+  background: rgba(255, 255, 255, 0.35);
+  transition: background-color 200ms ease;
+}
+
+.hc-dot--activo::before {
+  background: var(--hc-accent);
+}
+
+/* Mientras pasa sola, la línea activa es un riel tenue y la barra
+   dorada se llena en el tiempo del intervalo */
+.hc:not(.hc--pausado) .hc-dot--activo::before {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.hc-progreso {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 2px;
+  margin: -1px 0 0 -10px;
+  background: var(--hc-accent);
+  transform-origin: left center;
+  pointer-events: none;
+  animation: hc-progreso var(--hc-intervalo, 8000ms) linear both;
+}
+
+@keyframes hc-progreso {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Pausar / reanudar: discreto, a la izquierda de las líneas */
+.hc-pausa {
+  width: 32px;
+  height: 32px;
+  margin-right: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  font-size: 0.65rem;
+  opacity: 0.8;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 160ms ease;
+}
+
+.hc-pausa:focus-visible {
+  outline: 2px solid var(--hc-accent);
+  outline-offset: -2px;
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hc-pausa:hover {
+    opacity: 1;
+  }
+}
+
+/* Tocar la mitad izquierda/derecha de la imagen la cambia */
+.hc-track--tocable {
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hc-dot:not(.hc-dot--activo):hover::before {
+    background: rgba(255, 255, 255, 0.75);
+  }
+}
+
+.hc-dot:focus-visible {
+  outline: 2px solid var(--hc-accent);
+  outline-offset: -4px;
+  border-radius: 999px;
+}
+
+.hc-contador {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+
+.hc-contador-btn {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  font-size: 0.8rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hc-contador-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.hc-contador-btn:focus-visible {
+  outline: 2px solid var(--hc-accent);
+  outline-offset: -2px;
+}
+
+.hc-modal-contador {
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(18, 20, 61, 0.62);
+}
+
+/* ---------- Vista ampliada ---------- */
+.hc-modal {
+  --hc-accent: var(--theme-navbar-bg, #f5c242);
+  --hc-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(4.5rem, env(safe-area-inset-top, 0px)) clamp(1rem, 6vw, 5rem) 4.5rem;
+  background: rgba(9, 10, 30, 0.94);
+  animation: hc-modal-entrar 200ms var(--hc-ease-out) both;
+}
+
+.hc-modal-medio {
+  display: flex;
+  max-width: 100%;
+  max-height: 100%;
+  animation: hc-modal-medio-entrar 240ms var(--hc-ease-out) both;
+}
+
+.hc-modal-media {
+  display: block;
+  max-width: 100%;
+  max-height: calc(100dvh - 9rem);
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+.hc-modal-media.hc-media--roto {
+  position: relative;
+  width: min(80vw, 640px);
+  aspect-ratio: 16 / 10;
+}
+
+.hc-modal-cerrar {
+  position: fixed;
+  top: max(1rem, env(safe-area-inset-top, 0px));
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.hc-modal-nav {
+  position: fixed;
+}
+
+.hc-modal-contador {
+  position: fixed;
+  left: 50%;
+  bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+@keyframes hc-modal-entrar {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes hc-modal-medio-entrar {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+/* ---------- Teléfonos ---------- */
+@media (max-width: 560px) {
+  .hc-dot {
+    width: 18px;
+  }
+
+  .hc-dot::before,
+  .hc-progreso {
+    width: 14px;
+    margin-left: -7px;
+  }
+
+  /* En el celular la marca ocupa casi todo el ancho de abajo: las
+     líneas y la pausa suben a la esquina superior izquierda */
+  .hc-indicador {
+    top: 8px;
+    bottom: auto;
+    left: 8px;
+    right: auto;
+    padding: 0 0.35rem 0 0.15rem;
+    border-radius: 999px;
+    background: rgba(18, 20, 61, 0.55);
+  }
+
+  .hc-expand {
+    top: 8px;
+    right: 8px;
+  }
+
+  .hc-modal-nav {
+    top: auto;
+    bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+    margin-top: 0;
+  }
+}
+
+/* ---------- Movimiento reducido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .hc-track {
+    scroll-behavior: auto;
+  }
+
+  .hc-btn,
+  .hc-dot::before {
+    transition: none;
+  }
+
+  .hc--cargando::after,
+  .hc-modal,
+  .hc-modal-medio {
+    animation: none;
+  }
+}

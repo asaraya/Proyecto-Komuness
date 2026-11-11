@@ -1,0 +1,72 @@
+/* src/CSS/terminosCondiciones.css */
+.terminos-wrapper {
+  min-height: calc(100vh - 160px);
+  padding: 2.5rem 1rem 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.terminos-card {
+  width: 100%;
+  max-width: 980px;
+  background: rgba(14, 18, 60, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  padding: 2rem 1.4rem;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(4px);
+}
+
+.terminos-title {
+  margin: 0 0 0.6rem;
+  font-size: 2rem;
+  line-height: 1.15;
+  color: #f4c531;
+}
+
+.terminos-updated {
+  color: #d1d5db;
+  margin-bottom: 1.6rem;
+  font-size: 0.98rem;
+}
+
+.terminos-section {
+  margin-bottom: 1.35rem;
+}
+
+.terminos-section h2 {
+  margin: 0 0 0.45rem;
+  font-size: 1.12rem;
+  color: #ffffff;
+}
+
+.terminos-section p {
+  margin: 0;
+  color: #e5e7eb;
+  line-height: 1.65;
+  font-size: 1rem;
+}
+
+.terminos-link {
+  color: #f4c531;
+  text-decoration: underline;
+}
+
+.terminos-link:hover {
+  color: #ffd86a;
+}
+
+@media (min-width: 768px) {
+  .terminos-card {
+    padding: 2.4rem 2.2rem;
+  }
+
+  .terminos-title {
+    font-size: 2.3rem;
+  }
+
+  .terminos-section h2 {
+    font-size: 1.2rem;
+  }
+}

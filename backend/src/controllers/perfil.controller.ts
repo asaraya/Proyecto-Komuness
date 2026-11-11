@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { modelPerfil } from '../models/perfil.model';
 import { modelUsuario } from '../models/usuario.model';
+import { obtenerFaltantesBanco } from '../utils/perfilElegibilidad';
 import fs from 'fs';
 import path from 'path';
 
@@ -114,7 +115,7 @@ export const obtenerMiPerfil = async (req: Request, res: Response): Promise<void
   try {
     const userId = (req as any).user._id;
 
-    let perfil = await modelPerfil.findOne({ usuarioId: userId }).populate('usuarioId', 'nombre apellido email');
+    let perfil = await modelPerfil.findOne({ usuarioId: userId }).populate('usuarioId', 'nombre apellido email encuestaInicio.etiquetas');
 
     // Si no existe perfil, crear uno vacío
     if (!perfil) {
@@ -131,6 +132,7 @@ export const obtenerMiPerfil = async (req: Request, res: Response): Promise<void
         formacionAcademica: [],
         experienciaLaboral: [],
         habilidades: [],
+        etiquetas: [],
         proyectos: [],
         redesSociales: {}
       });
@@ -153,8 +155,9 @@ export const obtenerMiPerfil = async (req: Request, res: Response): Promise<void
 export const crearOActualizarPerfil = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = (req as any).user._id;
-    const datosActualizados = req.body;
+    const { etiquetas, ...datosActualizados } = req.body;
 
+    console.log(etiquetas);
     // Verificar que el usuario existe
     const usuario = await modelUsuario.findById(userId);
     if (!usuario) {
@@ -162,8 +165,41 @@ export const crearOActualizarPerfil = async (req: Request, res: Response): Promi
       return;
     }
 
+    if (etiquetas !== undefined) {
+      usuario.encuestaInicio = usuario.encuestaInicio || {};
+      usuario.encuestaInicio.etiquetas = [];
+      usuario.encuestaInicio.etiquetas = etiquetas;
+      await usuario.save();
+    }
+    
     // Buscar perfil existente
     let perfil = await modelPerfil.findOne({ usuarioId: userId });
+
+    const esAdmin = usuario.tipoUsuario === 0 || usuario.tipoUsuario === 1;
+    const quiereEstarEnBanco = datosActualizados.enBancoProfesionales === true;
+
+    // Si se intenta aparecer en el banco, validar elegibilidad en el servidor
+    if (quiereEstarEnBanco) {
+      const perfilResultante = {
+        ...(perfil ? perfil.toObject() : {}),
+        ...datosActualizados
+      };
+
+      if (!esAdmin) {
+        const faltantes = obtenerFaltantesBanco(perfilResultante);
+        if (faltantes.length > 0) {
+          res.status(200).json({
+            success: false,
+            message: 'Debes completar tu perfil antes de unirte al banco',
+            data: faltantes
+          });
+          return;
+        }
+      }
+
+      // Un perfil dentro del banco debe ser público para poder listarse
+      datosActualizados.perfilPublico = true;
+    }
 
     if (perfil) {
       // Actualizar perfil existente
@@ -392,6 +428,48 @@ export const actualizarCorreoPrincipal = async (req: Request, res: Response): Pr
     console.error('Error en actualizarCorreoPrincipal:', error);
     res.status(500).json({
       message: 'Error al actualizar el correo',
+      error: error instanceof Error ? error.message : 'Error desconocido'
+    });
+  }
+};
+
+/**
+ * Obtener mi perfil completo (usuario autenticado)
+ * @route GET /api/perfil/usuario/elegibilidad-banco
+ */
+export const validacionParaBanco = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as any).user._id;
+
+    let perfil = await modelPerfil.findOne({ usuarioId: userId }).select('nombre apellidos telefono canton provincia fotoPerfil ocupacionPrincipal formacionAcademica').lean();
+
+    // Si no encuentra el perfil, retorna un error
+    if (!perfil) {
+      res.status(404).json({message: 'Este perfil público no existe'});
+      return;
+    }
+
+
+    const faltantes = obtenerFaltantesBanco(perfil);
+
+    if (perfil && faltantes.length > 0) {
+      res.status(200).json({
+        success: false,
+        message: 'Debes completar tu perfil antes de unirte al banco',
+        data: faltantes
+      });
+      return 
+    }
+      
+    //En el caso de que sí pueda unirse, retorna con éxito
+    res.status(200).json({ 
+      success: true
+    });
+
+  } catch (error) {
+    console.error('Error en obtenerMiPerfil:', error);
+    res.status(500).json({
+      message: 'Error al obtener el perfil',
       error: error instanceof Error ? error.message : 'Error desconocido'
     });
   }

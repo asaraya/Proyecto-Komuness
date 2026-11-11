@@ -3,15 +3,17 @@ import {
   obtenerProfesionales, 
   toggleBancoProfesionales, 
   quitarDelBanco,
-  obtenerEstadoBanco 
+  obtenerEstadoBanco,
+  esProfesional
 } from '../controllers/bancoProfesionales.controller';
 import { authMiddleware } from '../middlewares/auth.middleware';
 import { verificarRoles } from '../middlewares/roles.middleware';
 
 const router = Router();
 
-// Ruta pública - obtener listado de profesionales
+// Ruta pública - obtener listado de profesionales y ver si el usuario actual es profesional
 router.get('/', obtenerProfesionales);
+router.get('/es-profesional/:id', esProfesional);
 
 // Rutas protegidas
 router.get('/estado', authMiddleware, obtenerEstadoBanco);

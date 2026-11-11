@@ -1,10 +1,11 @@
+import { verifySingleFile, acceptAttr } from '../utils/fileValidation';
 import { useState, useRef } from "react";
 import { FaCamera, FaTrash } from "react-icons/fa";
 import { BiLoaderAlt } from "react-icons/bi";
 
 const UserProfileAvatar = ({
   currentImage,
-  defaultImage = "https://via.placeholder.com/200x200/cccccc/666666?text=Sin+Foto",
+  defaultImage = "https://media.defense.gov/2023/Jul/05/2003253160/-1/-1/0/230705-F-XW046-1001.PNG",
   onImageChange,
   onImageDelete,
   size = "medium",
@@ -27,6 +28,11 @@ const UserProfileAvatar = ({
 
     if (!file.type.startsWith("image/")) {
       setError("Por favor selecciona un archivo de imagen");
+      return;
+    }
+
+    if (!(await verifySingleFile(file, "images"))) {
+      e.target.value = "";
       return;
     }
 
@@ -118,7 +124,7 @@ const UserProfileAvatar = ({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept={acceptAttr('images')}
         className="hidden"
         onChange={handleImageChange}
         aria-label="Subir imagen de perfil"

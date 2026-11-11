@@ -6,7 +6,6 @@ import {
   FiStar,
   FiCheck,
   FiArrowLeft,
-  FiZap,
   FiAlertCircle,
   FiRefreshCw,
   FiCheckCircle,
@@ -29,10 +28,14 @@ const CheckoutPremium = () => {
   const [metodoPago, setMetodoPago] = useState('paypal');
   const [configPagos, setConfigPagos] = useState(null);
   const [cargandoConfig, setCargandoConfig] = useState(false);
+  const [paquetes, setPaquetes] = useState([]);
+  const [cargandoPaquetes, setCargandoPaquetes] = useState(false);
+  const [errorPaquetes, setErrorPaquetes] = useState('');
 
   // Cargar configuración de pagos al iniciar
   useEffect(() => {
     cargarConfiguracionPagos();
+    cargarPaquetes();
   }, []);
 
   const cargarConfiguracionPagos = async () => {
@@ -83,49 +86,69 @@ const CheckoutPremium = () => {
       setConfigPagos({
         sinpeNumero: '',
         sinpeNombre: '',
-        whatsappNumero: '',
-        planMensualMonto: 4.0,
-        planAnualMonto: 8.0
+        whatsappNumero: ''
       });
     } finally {
       setCargandoConfig(false);
     }
   };
 
-  // Definir planes con valores de configuración o por defecto
-  const planes = {
-    mensual: {
-      id: 'mensual',
-      nombre: 'Plan Mensual',
-      precio: configPagos?.planMensualMonto || 4.0,
-      periodo: 'mes',
-      descripcion: 'Facturación mensual',
-      badge: null,
-    },
-    anual: {
-      id: 'anual',
-      nombre: 'Plan Anual',
-      precio: configPagos?.planAnualMonto || 8.0,
-      periodo: 'año',
-      descripcion: 'Facturación anual',
-      badge: '33% OFF',
-      precioComparacion: (configPagos?.planMensualMonto || 4.0) * 12,
-    },
-  };
+  const cargarPaquetes = async () => {
+    try {
+      setCargandoPaquetes(true);
+      setErrorPaquetes('');
 
-  // Calcular descuento para mostrar
-  const calcularDescuento = () => {
-    const precioMensual = planes.mensual.precio;
-    const precioAnual = planes.anual.precio;
-    if (precioMensual > 0) {
-      return (((precioMensual * 12 - precioAnual) / (precioMensual * 12)) * 100).toFixed(0);
+      const response = await fetch(`${API_URL}/paquetes-suscripcion/get-paquetes`);
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const lista = Array.isArray(data?.data) ? data.data : [];
+      setPaquetes(lista);
+    } catch (error) {
+      console.error('Error al cargar paquetes:', error);
+      setErrorPaquetes('No se pudieron cargar los paquetes de suscripcion.');
+      toast.error('No se pudieron cargar los paquetes de suscripcion.');
+      setPaquetes([]);
+    } finally {
+      setCargandoPaquetes(false);
     }
-    return '33';
   };
 
-  const beneficios = [
-    'Publicaciones adicionales tanto en eventos como en emprendimientos',
-  ];
+  const formatearMonto = (monto) => {
+    return Number.isFinite(Number(monto)) ? Number(monto).toFixed(2) : '0.00';
+  };
+
+  const formatearMontoConMoneda = (monto, moneda = 'USD') => {
+    return `${moneda} ${formatearMonto(monto)}`;
+  };
+
+  const obtenerSimboloMoneda = (moneda = 'USD') => {
+    return moneda === 'USD' ? '$' : moneda;
+  };
+
+  const formatearPeriodo = (dias) => {
+    const safeDias = Number.isFinite(Number(dias)) ? Number(dias) : 0;
+    if (!safeDias) return 'Duracion no definida';
+    if (safeDias === 30) return 'mes';
+    if (safeDias === 365) return 'ano';
+    if (safeDias % 30 === 0) {
+      const meses = safeDias / 30;
+      return meses === 1 ? 'mes' : `${meses} meses`;
+    }
+    return `${safeDias} dias`;
+  };
+
+  const obtenerPlanPayload = (paquete) => {
+    const dias = Number(paquete?.duracionDias || 0);
+    return dias >= 365 ? 'anual' : 'mensual';
+  };
+
+  const beneficios =
+    Array.isArray(planSeleccionado?.beneficios) && planSeleccionado.beneficios.length > 0
+      ? planSeleccionado.beneficios
+      : ['Publicaciones adicionales tanto en eventos como en emprendimientos'];
 
   const cambiarMetodoPago = (metodo) => {
     if (procesando) return;
@@ -135,15 +158,17 @@ const CheckoutPremium = () => {
   };
 
   const createOrder = async (data, actions) => {
-    const plan = planes[planSeleccionado];
+    const plan = planSeleccionado;
     const storedUser = JSON.parse(localStorage.getItem('user')); // 🔁 renombrado para no chocar con authUser
     const userId = storedUser ? storedUser._id : null;
+    const monto = Number(plan?.monto || 0).toFixed(2);
+    const moneda = plan?.moneda || 'USD';
 
     return actions.order.create({
       purchase_units: [
         {
-          description: `Komuness Premium - ${plan.nombre}`,
-          amount: { value: plan.precio.toFixed(2), currency_code: 'USD' },
+          description: `Komuness Premium - ${plan?.nombre || 'Paquete'}`,
+          amount: { value: monto, currency_code: moneda },
           custom_id: userId, // asocia la orden PayPal con el ID de usuario de MongoDB
         },
       ],
@@ -162,7 +187,7 @@ const CheckoutPremium = () => {
       // 👉 Marcamos que empezó el procesamiento del pago
       setProcesando(true);
 
-      const details = await actions.order.capture();
+      await actions.order.capture();
      
 
       toast.success('✅ Pago realizado con éxito. Activando Premium...', {
@@ -199,7 +224,7 @@ const CheckoutPremium = () => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`, // 🆕 usamos siempre el token calculado
           },
-          body: JSON.stringify({ plan: planSeleccionado || 'mensual' }),
+          body: JSON.stringify({ plan: obtenerPlanPayload(planSeleccionado) }),
         });
 
         const premiumData = await resPremium.json();
@@ -323,86 +348,73 @@ const CheckoutPremium = () => {
           </div>
         </div>
 
-        {/* Planes */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {/* Plan Mensual */}
-          <div
-            className={`plan-card bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-2xl p-8 cursor-pointer transition-all duration-300 relative overflow-hidden ${
-              planSeleccionado === 'mensual'
-                ? 'ring-4 ring-blue-500 scale-105 animate-glow'
-                : 'hover:shadow-xl hover:scale-102'
-            }`}
-            onClick={() => {
-              setPlanSeleccionado('mensual');
-              setMetodoPago('paypal');
-              setErrorMessage('');
-              setReintentos(0);
-            }}
-          >
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                {planes.mensual.nombre}
-              </h3>
-              <div className="flex items-baseline justify-center gap-1">
-                <span className="text-5xl font-bold text-gray-900">
-                  ${planes.mensual.precio.toFixed(2)}
-                </span>
-                <span className="text-gray-600">/ {planes.mensual.periodo}</span>
-              </div>
-              <p className="text-gray-500 mt-2">{planes.mensual.descripcion}</p>
+        {/* Paquetes */}
+        <div className="mb-8">
+          {cargandoPaquetes ? (
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="h-48 bg-white rounded-2xl shadow-lg animate-pulse"></div>
+              <div className="h-48 bg-white rounded-2xl shadow-lg animate-pulse"></div>
             </div>
-
-            {planSeleccionado === 'mensual' && (
-              <div className="flex items-center justify-center gap-2 text-blue-600 font-semibold animate-scale-in">
-                <FiCheckCircle size={20} className="animate-pulse" />
-                Plan seleccionado
-              </div>
-            )}
-          </div>
-
-          {/* Plan Anual */}
-          <div
-            className={`plan-card bg-gradient-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-200 rounded-2xl p-8 cursor-pointer transition-all duration-300 relative overflow-hidden ${
-              planSeleccionado === 'anual'
-                ? 'ring-4 ring-yellow-500 scale-105 animate-glow'
-                : 'hover:shadow-xl hover:scale-102'
-            }`}
-            onClick={() => {
-              setPlanSeleccionado('anual');
-              setMetodoPago('paypal');
-              setErrorMessage('');
-              setReintentos(0);
-            }}
-          >
-            {/* Badge con descuento dinámico */}
-            <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1 animate-bounce-soft">
-              <FiZap size={14} />
-              {calcularDescuento()}% OFF
+          ) : errorPaquetes ? (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center text-red-700">
+              {errorPaquetes}
             </div>
-
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                {planes.anual.nombre}
-              </h3>
-              <div className="flex items-baseline justify-center gap-1">
-                <span className="text-5xl font-bold text-gray-900">
-                  ${planes.anual.precio.toFixed(2)}
-                </span>
-                <span className="text-gray-600">/ {planes.anual.periodo}</span>
-              </div>
-              <p className="text-gray-500 mt-2">{planes.anual.descripcion}</p>
-              <p className="text-sm text-gray-600 mt-1 line-through">
-                ${planes.anual.precioComparacion.toFixed(2)} al año
-              </p>
+          ) : paquetes.length === 0 ? (
+            <div className="bg-white rounded-2xl shadow-lg p-8 text-center text-gray-600">
+              No hay paquetes disponibles en este momento.
             </div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-6">
+              {paquetes.map((paquete) => {
+                const seleccionado = planSeleccionado?._id === paquete._id;
+                const disponible = paquete.activo !== false;
+                const simbolo = obtenerSimboloMoneda(paquete.moneda);
 
-            {planSeleccionado === 'anual' && (
-              <div className="flex items-center justify-center gap-2 text-yellow-600 font-semibold mb-4 animate-scale-in">
-                <FiCheckCircle size={20} className="animate-pulse" />
-                Plan seleccionado
-              </div>
-            )}
-          </div>
+                return (
+                  <div
+                    key={paquete._id}
+                    className={`plan-card bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-2xl p-8 transition-all duration-300 relative overflow-hidden ${
+                      seleccionado
+                        ? 'ring-4 ring-blue-500 scale-105 animate-glow'
+                        : 'hover:shadow-xl hover:scale-102'
+                    } ${!disponible ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                    onClick={() => {
+                      if (!disponible) return;
+                      setPlanSeleccionado(paquete);
+                      setMetodoPago('paypal');
+                      setErrorMessage('');
+                      setReintentos(0);
+                    }}
+                  >
+                    <div className="text-center mb-6">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                        {paquete.nombre}
+                      </h3>
+                      <div className="flex items-baseline justify-center gap-1">
+                        <span className="text-5xl font-bold text-gray-900">
+                          {simbolo}{formatearMonto(paquete.monto)}
+                        </span>
+                        <span className="text-gray-600">/ {formatearPeriodo(paquete.duracionDias)}</span>
+                      </div>
+                      {paquete.descripcion && (
+                        <p className="text-gray-500 mt-2">{paquete.descripcion}</p>
+                      )}
+                      {!disponible && (
+                        <p className="text-sm text-red-600 mt-2">No disponible</p>
+                      )}
+                    </div>
+
+                    {seleccionado && (
+                      <div className="flex items-center justify-center gap-2 text-blue-600 font-semibold animate-scale-in">
+                        <FiCheckCircle size={20} className="animate-pulse" />
+                        Plan seleccionado
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Pago */}
@@ -412,13 +424,13 @@ const CheckoutPremium = () => {
               Completa tu pago
             </h3>
             <p className="text-center text-gray-600 mb-6">
-              Seleccionaste el{' '}
+              Seleccionaste el paquete{' '}
               <span className="font-semibold">
-                {planes[planSeleccionado].nombre}
+                {planSeleccionado?.nombre}
               </span>
               {' '}por{' '}
               <span className="font-bold text-green-600">
-                ${planes[planSeleccionado].precio.toFixed(2)} USD
+                {formatearMontoConMoneda(planSeleccionado?.monto, planSeleccionado?.moneda)}
               </span>
             </p>
 
@@ -665,7 +677,7 @@ const CheckoutPremium = () => {
                         <li>
                           Monto a transferir:{' '}
                           <span className="font-bold text-green-600">
-                            ${planSeleccionado === 'anual' ? configPagos.planAnualMonto : configPagos.planMensualMonto} USD
+                            {formatearMontoConMoneda(planSeleccionado?.monto, planSeleccionado?.moneda)}
                           </span>
                         </li>
                         <li>
@@ -716,9 +728,9 @@ const CheckoutPremium = () => {
         {!planSeleccionado && (
           <div className="text-center text-gray-600 bg-white rounded-2xl shadow-lg p-8">
             <FiStar className="mx-auto mb-3 text-yellow-500 animate-pulse" size={48} />
-            <p className="text-lg font-semibold">Selecciona un plan para continuar</p>
+            <p className="text-lg font-semibold">Selecciona un paquete para continuar</p>
             <p className="text-sm text-gray-500 mt-2">
-              Elige entre nuestros planes mensual o anual
+              Elige uno de los paquetes disponibles
             </p>
           </div>
         )}

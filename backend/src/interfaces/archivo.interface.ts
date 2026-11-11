@@ -10,6 +10,7 @@ interface Archivo {
     url: string; // URL de descarga del archivo en digitalOcean Spaces
     key: string; // Key en digitalOcean Spaces para su eliminacion
     folder: string;
+    categoria?: string | null;
     estado: 'pendiente' | 'aprobado' | 'rechazado'; // Estado de aprobación del archivo
     uploadedBy: string; // Usuario que subió el archivo (para rastrear quién lo subió)
 }

@@ -13,6 +13,8 @@ const archivoSchema = new Schema({
     url: { type: String, required: true }, // URL de descarga del archivo en digitalOcean Spaces
     key: { type: String, required: true }, // Nombre del archivo en digitalOcean Spaces
     folder: { type: Schema.Types.ObjectId, ref: 'Folder', default: null },
+    // Obligatoria al subir (se valida en el controlador; archivos antiguos pueden no tenerla)
+    categoria: { type: Schema.Types.ObjectId, ref: 'Categoria', default: null },
     estado: { 
         type: String, 
         enum: ['pendiente', 'aprobado', 'rechazado'], 

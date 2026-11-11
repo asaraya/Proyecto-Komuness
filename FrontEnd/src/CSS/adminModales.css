@@ -1,0 +1,233 @@
+/* Modales del dashboard administrativo (Límites, Pagos y Paquetes, Temática).
+   Se aplica con la clase .kw-admin-modal en el overlay del modal y adapta las
+   utilidades de Tailwind que ya usan esos componentes a la paleta del sitio
+   (navy + acento del tema), igual que Editar Perfil / Banco de Profesionales.
+   No afecta nada fuera de .kw-admin-modal. */
+.kw-admin-modal {
+  --kw-accent: var(--theme-navbar-bg, #f5c242);
+  --kw-navy: #12143d;
+  --kw-navy-soft: #181c4d;
+  --kw-text: #f5f6fa;
+  --kw-soft-text: #dcdef0;
+  --kw-muted: #b7bbd9;
+  --kw-border: rgba(255, 255, 255, 0.14);
+  --kw-field: rgba(0, 0, 0, 0.28);
+  --kw-danger: #f87171;
+  --kw-success: #34d399;
+  --kw-info: #93c5fd;
+
+  color: var(--kw-text);
+}
+
+/* Fondo oscuro detrás del modal */
+.kw-admin-modal.bg-black.bg-opacity-50 {
+  background-color: rgba(8, 9, 30, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+/* Ventana del modal */
+.kw-admin-modal > div {
+  background: var(--kw-navy-soft);
+  border: 1px solid var(--kw-border);
+  border-radius: 20px;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
+}
+
+/* ---------- Fondos ---------- */
+.kw-admin-modal .bg-white { background-color: var(--kw-navy-soft); }
+.kw-admin-modal .bg-gray-50 { background-color: var(--kw-navy); }
+.kw-admin-modal .sticky.bg-white,
+.kw-admin-modal .sticky.bg-gray-50 { border-color: var(--kw-border); }
+.kw-admin-modal div.bg-gray-200 { background-color: rgba(255, 255, 255, 0.08); } /* skeleton de carga */
+
+.kw-admin-modal .bg-blue-50 { background-color: rgba(96, 165, 250, 0.08); }
+.kw-admin-modal .bg-yellow-50 { background-color: rgba(245, 194, 66, 0.08); }
+.kw-admin-modal .bg-green-50 { background-color: rgba(52, 211, 153, 0.08); }
+.kw-admin-modal .bg-blue-100 { background-color: rgba(96, 165, 250, 0.16); }
+.kw-admin-modal .bg-yellow-100 { background-color: rgba(245, 194, 66, 0.16); }
+.kw-admin-modal .bg-green-100 { background-color: rgba(52, 211, 153, 0.16); }
+.kw-admin-modal .bg-emerald-100 { background-color: rgba(52, 211, 153, 0.16); }
+
+/* Caja de mensaje dentro de la tarjeta de WhatsApp */
+.kw-admin-modal div.bg-white.border { background-color: var(--kw-field); }
+
+/* Sección de paquetes: panel navy plano en vez del degradado */
+.kw-admin-modal .bg-gradient-to-br {
+  background-image: none;
+  background-color: var(--kw-navy);
+  border-color: var(--kw-border);
+  box-shadow: none;
+}
+.kw-admin-modal .blur-3xl,
+.kw-admin-modal .blur-2xl { display: none; }
+
+/* ---------- Textos ---------- */
+.kw-admin-modal .text-gray-900,
+.kw-admin-modal .text-gray-800 { color: var(--kw-text); }
+.kw-admin-modal .text-gray-700 { color: var(--kw-soft-text); }
+.kw-admin-modal .text-gray-600,
+.kw-admin-modal .text-gray-500,
+.kw-admin-modal .text-gray-400,
+.kw-admin-modal .text-slate-300,
+.kw-admin-modal .text-slate-200 { color: var(--kw-muted); }
+
+.kw-admin-modal .text-blue-500,
+.kw-admin-modal .text-blue-600,
+.kw-admin-modal .text-blue-700 { color: var(--kw-info); }
+.kw-admin-modal .text-yellow-600,
+.kw-admin-modal .text-yellow-700,
+.kw-admin-modal .text-yellow-800,
+.kw-admin-modal .text-indigo-500 { color: var(--kw-accent); }
+.kw-admin-modal .text-green-600,
+.kw-admin-modal .text-green-700,
+.kw-admin-modal .text-emerald-700 { color: var(--kw-success); }
+
+/* Títulos */
+.kw-admin-modal h2.text-2xl { color: var(--kw-text); }
+
+/* Botón cerrar (X) del encabezado */
+.kw-admin-modal .hover\:text-gray-600:hover,
+.kw-admin-modal .hover\:text-gray-700:hover { color: var(--kw-text); }
+
+/* ---------- Bordes ---------- */
+.kw-admin-modal .border-gray-200,
+.kw-admin-modal .border-gray-300,
+.kw-admin-modal .border-slate-200 { border-color: var(--kw-border); }
+.kw-admin-modal .border-blue-300,
+.kw-admin-modal .border-blue-400 { border-color: rgba(96, 165, 250, 0.4); }
+.kw-admin-modal .border-blue-500 { border-color: rgba(96, 165, 250, 0.7); }
+.kw-admin-modal .border-yellow-200,
+.kw-admin-modal .border-yellow-300,
+.kw-admin-modal .border-yellow-400 { border-color: rgba(245, 194, 66, 0.4); }
+.kw-admin-modal .border-green-200,
+.kw-admin-modal .border-green-300,
+.kw-admin-modal .border-green-400 { border-color: rgba(52, 211, 153, 0.4); }
+
+/* ---------- Campos ---------- */
+.kw-admin-modal input[type="text"],
+.kw-admin-modal input[type="tel"],
+.kw-admin-modal input[type="number"],
+.kw-admin-modal input[type="date"],
+.kw-admin-modal select,
+.kw-admin-modal textarea {
+  color: var(--kw-text);
+  background-color: var(--kw-field);
+  border-color: var(--kw-border);
+  border-radius: 12px;
+  color-scheme: dark; /* calendario y flechas en oscuro */
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.kw-admin-modal input::placeholder,
+.kw-admin-modal textarea::placeholder { color: var(--kw-muted); opacity: 0.7; }
+.kw-admin-modal input:focus,
+.kw-admin-modal select:focus,
+.kw-admin-modal textarea:focus {
+  outline: none;
+  border-color: var(--kw-accent);
+  --tw-ring-color: rgba(245, 194, 66, 0.25);
+  box-shadow: 0 0 0 3px rgba(245, 194, 66, 0.2);
+}
+.kw-admin-modal input:disabled,
+.kw-admin-modal select:disabled,
+.kw-admin-modal textarea:disabled { opacity: 0.45; cursor: not-allowed; }
+.kw-admin-modal select option { background: var(--kw-navy-soft); color: var(--kw-text); }
+.kw-admin-modal input[type="color"] {
+  background-color: var(--kw-field);
+  border-color: var(--kw-border);
+  cursor: pointer;
+}
+.kw-admin-modal input[type="checkbox"] { accent-color: var(--kw-accent); }
+
+/* Bloque desplegable "Colores de este tema" */
+.kw-admin-modal details { background-color: var(--kw-field); border-color: var(--kw-border); }
+.kw-admin-modal summary { color: var(--kw-text); }
+
+/* ---------- Botones ---------- */
+.kw-admin-modal button.bg-green-600,
+.kw-admin-modal button.bg-gray-200,
+.kw-admin-modal button.bg-gray-100,
+.kw-admin-modal button.bg-indigo-600,
+.kw-admin-modal button.bg-indigo-500,
+.kw-admin-modal button.bg-blue-600,
+.kw-admin-modal button.bg-amber-600,
+.kw-admin-modal button.bg-rose-600 {
+  border-radius: 999px;
+  font-weight: 700;
+  transition: filter 0.2s, transform 0.2s, background-color 0.2s;
+}
+
+/* Principal: acento del tema */
+.kw-admin-modal button.bg-green-600,
+.kw-admin-modal button.bg-indigo-600,
+.kw-admin-modal button.bg-indigo-500,
+.kw-admin-modal button.bg-blue-600 {
+  color: var(--kw-navy);
+  background-color: var(--kw-accent);
+  border: 1px solid var(--kw-accent);
+}
+.kw-admin-modal button.bg-green-600:hover:not(:disabled),
+.kw-admin-modal button.bg-indigo-600:hover:not(:disabled),
+.kw-admin-modal button.bg-indigo-500:hover:not(:disabled),
+.kw-admin-modal button.bg-blue-600:hover:not(:disabled) {
+  background-color: var(--kw-accent);
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+/* Secundario: contorno (Cancelar / Cerrar / pestaña inactiva) */
+.kw-admin-modal button.bg-gray-200,
+.kw-admin-modal button.bg-gray-100 {
+  color: var(--kw-text);
+  background-color: transparent;
+  border: 1px solid var(--kw-border);
+}
+.kw-admin-modal button.bg-gray-100 { color: var(--kw-muted); }
+.kw-admin-modal button.bg-gray-200:hover:not(:disabled),
+.kw-admin-modal button.bg-gray-100:hover:not(:disabled) {
+  color: var(--kw-text);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Activar/Desactivar (temática) */
+.kw-admin-modal button.bg-amber-600 {
+  color: var(--kw-accent);
+  background-color: transparent;
+  border: 1px solid rgba(245, 194, 66, 0.6);
+}
+.kw-admin-modal button.bg-amber-600:hover { background-color: rgba(245, 194, 66, 0.12); }
+
+/* Eliminar (temática) */
+.kw-admin-modal button.bg-rose-600 {
+  color: var(--kw-danger);
+  background-color: transparent;
+  border: 1px solid var(--kw-danger);
+}
+.kw-admin-modal button.bg-rose-600:hover { background-color: rgba(248, 113, 113, 0.12); }
+
+/* Botones con borde gris (Limpiar formulario, Quitar imagen, Seleccionar imagen) */
+.kw-admin-modal .hover\:bg-gray-50:hover { background-color: rgba(255, 255, 255, 0.06); }
+.kw-admin-modal button.border-gray-300,
+.kw-admin-modal label.border-gray-300 { border-radius: 999px; }
+
+/* Pills de "Activo / Inactivo" */
+.kw-admin-modal span.bg-emerald-100 { color: var(--kw-success); }
+.kw-admin-modal span.bg-gray-200 {
+  color: var(--kw-muted);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Foco visible */
+.kw-admin-modal button:focus-visible,
+.kw-admin-modal summary:focus-visible {
+  outline: 2px solid var(--kw-accent);
+  outline-offset: 2px;
+}
+
+/* Scroll interno del modal */
+.kw-admin-modal ::-webkit-scrollbar { width: 8px; height: 8px; }
+.kw-admin-modal ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.18); border-radius: 999px; }
+.kw-admin-modal ::-webkit-scrollbar-track { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  .kw-admin-modal * { transition: none !important; }
+}

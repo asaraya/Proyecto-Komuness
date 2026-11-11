@@ -2,7 +2,8 @@ import { useState, useRef } from 'react';
 import { API_URL, BASE_URL } from '../utils/api';
 import { toast } from 'react-hot-toast';
 import '../CSS/subidaArchivo.css';
-import { FaUpload, FaTrash, FaFileAlt, FaImage } from 'react-icons/fa';
+import { FaTrash, FaFileAlt, FaImage } from 'react-icons/fa';
+import { verifySingleFile, acceptAttr } from '../utils/fileValidation';
 
 const SubidaArchivo = ({ tipo, archivoActual, onSubida }) => {
   const [subiendo, setSubiendo] = useState(false);
@@ -35,9 +36,9 @@ const SubidaArchivo = ({ tipo, archivoActual, onSubida }) => {
     return true;
   };
 
-  const handleFileSelect = (e) => {
+  const handleFileSelect = async (e) => {
     const file = e.target.files[0];
-    if (file && validarArchivo(file)) {
+    if (file && validarArchivo(file) && await verifySingleFile(file, esFoto ? 'images' : 'pdf')) {
       // Previsualización para fotos
       if (esFoto) {
         const reader = new FileReader();
@@ -51,10 +52,10 @@ const SubidaArchivo = ({ tipo, archivoActual, onSubida }) => {
     }
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = async (e) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
-    if (file && validarArchivo(file)) {
+    if (file && validarArchivo(file) && await verifySingleFile(file, esFoto ? 'images' : 'pdf')) {
       if (esFoto) {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -179,7 +180,7 @@ const SubidaArchivo = ({ tipo, archivoActual, onSubida }) => {
         <input 
           ref={inputFileRef}
           type="file"
-          accept={esFoto ? 'image/jpeg,image/jpg,image/png,image/webp' : 'application/pdf'}
+          accept={acceptAttr(esFoto ? 'images' : 'pdf')}
           onChange={handleFileSelect}
           style={{ display: 'none' }}
         />

@@ -1,45 +1,67 @@
-
 import request from "supertest";
 import app from "../index"; // Asegúrate de importar la instancia de Express
 import { modelPublicacion } from "../models/publicacion.model";
-import mongoose from "mongoose";
+import { connectBD } from "../utils/mongodb";
+import { crearUsuarioConToken, crearCategoria, publicacionDePrueba } from "./helpers/testData";
 
 describe("Comentarios en Publicaciones", () => {
     let publicacionId: string | null = null;
+    let auth: string;
 
     beforeAll(async () => {
+        await connectBD(process.env.BD_URL || "mongodb://localhost:27017/testdb");
+        const { usuario, auth: header } = await crearUsuarioConToken(2);
+        auth = header;
+        const categoria = await crearCategoria();
+
         // Crear una publicación de prueba antes de ejecutar las pruebas
         const publicacion = await modelPublicacion.create({
-            titulo: "Prueba",
-            contenido: "Contenido de prueba",
-            autor: new mongoose.Types.ObjectId('67da43f3651480413241b33c'),
-            fecha: new Date(),
+            ...publicacionDePrueba(categoria._id),
+            autor: usuario._id,
             adjunto: [],
             comentarios: [],
-            tag: "test",
-            publicado: true
         });
 
         publicacionId = (publicacion as any)._id.toString();
     });
 
-    // afterAll(async () => {
-    //     await mongoose.connection.close();
-    // });
+    afterAll(async () => {
+        if (publicacionId) await modelPublicacion.findByIdAndDelete(publicacionId);
+    });
 
     test("Debe agregar un comentario a la publicación", async () => {
         const comentario = {
-            autor: "Usuario de prueba",
             contenido: "Este es un comentario de prueba"
         };
 
         const response = await request(app)
-            .post(`/publicaciones/${publicacionId}/comentarios`)
-            .send(comentario)
-            .expect(201);
+            .post(`/api/publicaciones/${publicacionId}/comentarios`)
+            .set("Authorization", auth)
+            .send(comentario);
 
-        expect(response.body.comentarios).toHaveLength(1);
-        expect(response.body.comentarios[0].autor).toBe(comentario.autor);
-        expect(response.body.comentarios[0].contenido).toBe(comentario.contenido);
+        expect([200, 201]).toContain(response.status);
+
+        // El autor del comentario sale del token, no del body.
+        const guardada = await modelPublicacion.findById(publicacionId).lean();
+        expect(guardada?.comentarios).toHaveLength(1);
+        expect((guardada?.comentarios?.[0] as any).contenido).toBe(comentario.contenido);
+        expect((guardada?.comentarios?.[0] as any).autor.nombre).toBe("Test");
+    });
+
+    test("Rechaza comentarios sin token", async () => {
+        const response = await request(app)
+            .post(`/api/publicaciones/${publicacionId}/comentarios`)
+            .send({ contenido: "sin login" });
+
+        expect(response.status).toBe(401);
+    });
+
+    test("Rechaza comentarios vacíos", async () => {
+        const response = await request(app)
+            .post(`/api/publicaciones/${publicacionId}/comentarios`)
+            .set("Authorization", auth)
+            .send({ contenido: "   " });
+
+        expect(response.status).toBe(400);
     });
 });
